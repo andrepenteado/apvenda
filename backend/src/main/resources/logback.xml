@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<configuration>
+
+  <!-- Nome da aplicação -->
+  <contextName>APVenda</contextName>
+
+  <!-- Log para console -->
+  <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+    <encoder>
+      <pattern>%cyan(%d{"dd/MM/yyyy HH:mm:ss,SSS"}) %magenta(APVenda) %green(%X{IP}) %yellow(%X{USUARIO}) %highlight(%level %msg) %ex %class %n</pattern>
+    </encoder>
+  </appender>
+
+  <root level="INFO">
+    <appender-ref ref="CONSOLE" />
+  </root>
+
+</configuration>

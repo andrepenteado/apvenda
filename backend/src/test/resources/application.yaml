@@ -1,0 +1,16 @@
+spring:
+
+  datasource:
+    url: jdbc:postgresql://db-server:5433/apvenda-dbname
+    username: apvenda-dbuser
+    password: apvenda-dbpasswd
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+
+frontend:
+  base-url: https://sistemas.apcode.com.br # CORS
+  base-path: /venda

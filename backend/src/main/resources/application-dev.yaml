@@ -1,0 +1,34 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://db-server/apvenda-dbname
+
+  security:
+    oauth2:
+      client:
+        registration:
+          "[com.github.andrepenteado.venda]":
+            provider: com.github.andrepenteado.sso.portal
+            client-name: APvenda
+            client-id: LOCAL-venda
+            client-secret: f727c744-b8dc-41c4-b399-8e097a312223
+            authorization-grant-type: authorization_code
+            scope: openid
+            redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
+            client-authentication-method: client_secret_basic
+        provider:
+          "[com.github.andrepenteado.sso.portal]":
+            issuer-uri: https://login.apcode.com.br
+
+server:
+  servlet:
+    session:
+      cookie:
+        http-only: false
+
+management:
+  tracing:
+    export:
+      enabled: false
+
+frontend:
+  base-url: http://localhost:4200 # CORS

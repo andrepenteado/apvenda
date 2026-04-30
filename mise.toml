@@ -1,0 +1,4 @@
+[tools]
+java = "corretto-25.0.1.8.1"
+"vfox:mise-plugins/vfox-maven" = "4.0.0-rc-5"
+node = "24.13.0"
