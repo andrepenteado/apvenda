@@ -1,0 +1,28 @@
+crud: marca
+metadados: .cruds/marca.yaml
+versaoExecutada: 1
+checksumNormalizado: "sha256:8639dc29a731f1569f54539f3edcf1e9fadf67625c2519365c9d8478dc7b085a"
+executadoEm: "2026-05-06T16:09:23-03:00"
+status: sincronizado
+
+arquivos:
+  - backend/src/main/resources/db/changelog/versions/1.0.xml
+  - backend/src/main/java/com/github/andrepenteado/venda/VendaApplication.java
+  - backend/src/main/java/com/github/andrepenteado/venda/domain/entities/Marca.java
+  - backend/src/main/java/com/github/andrepenteado/venda/domain/repositories/MarcaRepository.java
+  - backend/src/main/java/com/github/andrepenteado/venda/services/MarcaService.java
+  - backend/src/main/java/com/github/andrepenteado/venda/resources/MarcaResource.java
+  - backend/src/test/java/com/github/andrepenteado/venda/services/MarcaServiceTest.java
+  - frontend/src/app/config/api.ts
+  - frontend/src/app/config/menu.ts
+  - frontend/src/app/config/routes.ts
+  - frontend/src/app/domain/entities/marca.ts
+  - frontend/src/app/services/marca.service.ts
+  - frontend/src/app/services/marca.service.spec.ts
+  - frontend/src/app/pages/marca/marca.routes.ts
+  - frontend/src/app/pages/marca/pesquisar/pesquisar.componente.ts
+  - frontend/src/app/pages/marca/pesquisar/pesquisar.componente.html
+  - frontend/src/app/pages/marca/pesquisar/pesquisar.componente.spec.ts
+  - frontend/src/app/pages/marca/cadastro/cadastro.componente.ts
+  - frontend/src/app/pages/marca/cadastro/cadastro.componente.html
+  - frontend/src/app/pages/marca/cadastro/cadastro.componente.spec.ts

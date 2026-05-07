@@ -10,6 +10,17 @@ export const DECORATED_ROUTES: Routes = [
     component: PaginaInicialComponent
   },
 
+  {
+    path: "marca",
+    loadChildren: () => import("../pages/marca/marca.routes").then(m => m.MARCA_ROUTES)
+  },
+
+  {
+    path: "marcas",
+    redirectTo: "marca/pesquisar",
+    pathMatch: "full"
+  }
+
 ]
 
 export const NO_DECORATED_ROUTES: Routes = [

@@ -15,7 +15,6 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.persistence.autoconfigure.EntityScan;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
-import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 
 @SpringBootApplication(
     scanBasePackages = {
@@ -35,7 +34,7 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 )
 @EntityScan(
     basePackages = {
-        "com.github.andrepenteado.roove"
+        "com.github.andrepenteado.venda"
     },
     basePackageClasses = {
         Upload.class
@@ -51,7 +50,7 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 )
 public class VendaApplication {
 
-    public static final String PERFIL_PROPRIETARIO = "ROLE_com.github.andrepenteado.roove_PROPRIETARIO";
+    public static final String PERFIL_CAIXA = "ROLE_com.github.andrepenteado.venda_CAIXA";
 
     static void main(String[] args) {
         SpringApplication.run(VendaApplication.class, args);

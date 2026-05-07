@@ -1,0 +1,38 @@
+crud:
+  nome: marca
+  versao: 1
+  tipoExecucao: criacao
+
+alteracoes:
+  - versao: 1
+    tipo: criacao
+    descricao: Criação inicial do CRUD de Marca.
+
+autor: André Penteado
+
+projeto:
+  nome: venda
+  perfis:
+    - VendaApplication.PERFIL_CAIXA:CAIXA
+
+tabela:
+  nome: marca
+  label: Marca
+  plural: Marcas
+  campos:
+    - nome: id
+      tipo: long
+      pk: true
+      autoincremento: true
+      exibe-grid: true
+      colunas-layout: 0
+
+    - nome: descricao
+      tipo: string
+      label: Descrição
+      obrigatorio: true
+      unique: true
+      indice: true
+      pesquisavel: contem
+      colunas-layout: 12
+      exibe-grid: true
