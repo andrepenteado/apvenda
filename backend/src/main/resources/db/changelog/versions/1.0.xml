@@ -6,6 +6,27 @@
     xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
                         http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
 
-    <!-- Nenhuma migração ainda -->
+    <changeSet id="2026-05-06-marca" author="André Penteado">
+        <createTable tableName="marca">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="pk_marca"/>
+            </column>
+            <column name="descricao" type="VARCHAR">
+                <constraints nullable="false" unique="true" uniqueConstraintName="un_marca_descricao"/>
+            </column>
+            <column name="criado_por" type="VARCHAR">
+                <constraints nullable="false"/>
+            </column>
+            <column name="criado_em" type="TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="alterado_por" type="VARCHAR"/>
+            <column name="alterado_em" type="TIMESTAMP"/>
+        </createTable>
+
+        <createIndex tableName="marca" indexName="idx_marca_descricao">
+            <column name="descricao"/>
+        </createIndex>
+    </changeSet>
 
 </databaseChangeLog>

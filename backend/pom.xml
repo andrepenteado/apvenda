@@ -8,7 +8,7 @@
     <modelVersion>4.1.0</modelVersion>
 
     <groupId>com.github.andrepenteado</groupId>
-    <artifactId>backend</artifactId>
+    <artifactId>venda</artifactId>
     <version>1.0.0</version>
 
     <name>APvenda</name>

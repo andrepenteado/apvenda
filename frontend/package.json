@@ -33,9 +33,6 @@
     "@bugsplat/ngx-animated-counter": "^18.0.0",
     "@fortawesome/fontawesome-free": "^7.1.0",
     "@ng-select/ng-select": "^21.8.2",
-    "@ngx-loading-bar/core": "^7.0.1",
-    "@ngx-loading-bar/http-client": "^7.0.1",
-    "@ngx-loading-bar/router": "^7.0.1",
     "bootstrap": "^5.3.8",
     "bootswatch": "^5.3.8",
     "datatables.net": "^2.3.6",
@@ -64,6 +61,7 @@
     "@angular/build": "^21.2.9",
     "@angular/cli": "^21.2.9",
     "@angular/compiler-cli": "^21.2.11",
+    "@types/jquery": "^4.0.0",
     "jsdom": "^29.1.1",
     "typescript": "~5.9.2",
     "vitest": "^4.1.5"
