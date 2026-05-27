@@ -1,0 +1,53 @@
+crud:
+  nome: categoria
+
+autor: André Penteado
+
+projeto:
+  nome: venda
+  perfis:
+    - VendaApplication.PERFIL_CAIXA:CAIXA
+
+tabela:
+  nome: categoria
+  label: Categoria
+  plural: Categorias
+  campos:
+    - nome: id
+      tipo: long
+      pk: true
+      autoincremento: true
+      exibe-grid: true
+      colunas-layout: 0
+
+    - nome: nome
+      tipo: string
+      label: Nome
+      obrigatorio: true
+      unique: true
+      indice: true
+      pesquisavel: contem
+      colunas-layout: 8
+      exibe-grid: true
+
+    - nome: ativo
+      tipo: boolean
+      label: Ativo?
+      obrigatorio: true
+      unique: false
+      indice: false
+      pesquisavel: exato
+      colunas-layout: 4
+      exibe-grid: true
+
+    - nome: categoria_pai
+      tipo: long
+      label: Categoria Pai
+      fk: categoria
+      fk-display: nome
+      obrigatorio: false
+      unique: false
+      indice: true
+      pesquisavel: exato
+      colunas-layout: 8
+      exibe-grid: true

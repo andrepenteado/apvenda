@@ -4,3 +4,4 @@
  * Observação: arquivo criado com ajuda da IA.
  */
 export const API_MARCAS: string = '/marcas';
+export const API_CATEGORIAS: string = '/categorias';

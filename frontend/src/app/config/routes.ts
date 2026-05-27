@@ -11,6 +11,11 @@ export const DECORATED_ROUTES: Routes = [
   },
 
   {
+    path: "categorias",
+    loadChildren: () => import("../pages/categoria/categoria.routes").then(m => m.CATEGORIA_ROUTES)
+  },
+
+  {
     path: "pagina-inicial",
     component: PaginaInicialComponent
   }
