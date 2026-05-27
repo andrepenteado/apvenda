@@ -1,0 +1,22 @@
+crud: categoria
+metadados: .cruds/categoria.yaml
+checksumNormalizado: "sha256:3a0a358e8741187103e376ac2fc7f146260e449a8be7ccc9d2f14eaa17032207"
+executadoEm: "2026-05-27T16:22:17-03:00"
+status: criado
+arquivos:
+  - backend/src/main/resources/db/changelog/versions/1.0.xml
+  - backend/src/main/java/com/github/andrepenteado/venda/domain/entities/Categoria.java
+  - backend/src/main/java/com/github/andrepenteado/venda/domain/filter/CategoriaFilter.java
+  - backend/src/main/java/com/github/andrepenteado/venda/domain/repositories/CategoriaRepository.java
+  - backend/src/main/java/com/github/andrepenteado/venda/services/CategoriaService.java
+  - backend/src/main/java/com/github/andrepenteado/venda/resources/CategoriaResource.java
+  - frontend/src/app/config/api.ts
+  - frontend/src/app/config/routes.ts
+  - frontend/src/app/config/menu.ts
+  - frontend/src/app/domain/entities/categoria.ts
+  - frontend/src/app/services/categoria.service.ts
+  - frontend/src/app/pages/categoria/categoria.routes.ts
+  - frontend/src/app/pages/categoria/pesquisar/pesquisar.componente.ts
+  - frontend/src/app/pages/categoria/pesquisar/pesquisar.componente.html
+  - frontend/src/app/pages/categoria/cadastro/cadastro.componente.ts
+  - frontend/src/app/pages/categoria/cadastro/cadastro.componente.html

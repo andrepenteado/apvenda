@@ -1,0 +1,180 @@
+<ngx-ui-loader
+  loaderId="categoria-pesquisar"
+  fgsType="three-bounce"
+  fgsColor="#0d6efd"
+  overlayColor="rgba(255, 255, 255, 0.82)"
+  pbColor="#0d6efd"
+  [hasProgressBar]="true">
+</ngx-ui-loader>
+
+<nav aria-label="breadcrumb" class="mb-3">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item">
+      <a routerLink="/pagina-inicial">
+        <i class="fa-solid fa-house me-1"></i>
+        Início
+      </a>
+    </li>
+    <li class="breadcrumb-item active" aria-current="page">Categorias</li>
+  </ol>
+</nav>
+
+<section class="container py-3">
+  <section class="row g-3 align-items-start mb-4">
+    <div class="col">
+      <div class="text-uppercase small text-secondary fw-semibold mb-1">
+        <i class="fa-solid fa-table-list me-1"></i>
+        Pesquisar
+      </div>
+      <h1 class="h3 fw-bold mb-1">Categorias</h1>
+      <p class="text-secondary mb-0">Consulte e mantenha as categorias cadastradas.</p>
+    </div>
+    <div class="col-auto">
+      <button type="button" class="btn btn-primary" (click)="novo()">
+        <i class="fa-solid fa-plus me-1"></i>
+        Novo
+      </button>
+    </div>
+  </section>
+
+  <section class="row g-3 mb-4 d-none d-md-flex">
+    <div class="col-md-4">
+      <div class="card h-100">
+        <div class="card-body">
+          <div class="text-secondary small">Total listado</div>
+          <div class="fs-4 fw-semibold">{{ categorias.length }}</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card h-100">
+        <div class="card-body">
+          <div class="text-secondary small">Campo principal</div>
+          <div class="fs-5 fw-semibold">Nome</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card h-100">
+        <div class="card-body">
+          <div class="text-secondary small">Filtros disponíveis</div>
+          <div class="fs-5 fw-semibold">Nome, ativo e pai</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="card">
+    <div class="card-header d-flex align-items-center justify-content-start">
+      <button
+        type="button"
+        class="btn btn-outline-secondary btn-sm"
+        data-bs-toggle="collapse"
+        data-bs-target="#categoria-filtros"
+        aria-expanded="false"
+        aria-controls="categoria-filtros">
+        <i class="fa-solid fa-filter me-1"></i>
+        Filtrar Pesquisa
+      </button>
+    </div>
+
+    <div id="categoria-filtros" class="collapse filters-collapse">
+      <div class="card-body border-bottom">
+        <form class="row g-2 align-items-center" (ngSubmit)="pesquisar()">
+          <div class="col-12 col-md">
+            <input
+              id="filtro-nome"
+              type="text"
+              name="nome"
+              class="form-control"
+              placeholder="Nome"
+              aria-label="Nome"
+              [(ngModel)]="filtro.nome">
+          </div>
+          <div class="col-12 col-md">
+            <select
+              id="filtro-ativo"
+              name="ativo"
+              class="form-select"
+              [class.text-secondary]="filtro.ativo === null"
+              aria-label="Ativo?"
+              [(ngModel)]="filtro.ativo">
+              <option [ngValue]="null" disabled>Ativo?</option>
+              <option [ngValue]="true">Sim</option>
+              <option [ngValue]="false">Não</option>
+            </select>
+          </div>
+          <div class="col-12 col-md">
+            <ng-select
+              id="filtro-categoria-pai"
+              name="categoriaPai"
+              class="ng-select-bootstrap"
+              [items]="categoriasPai"
+              bindLabel="nome"
+              bindValue="id"
+              placeholder="Categoria Pai"
+              aria-label="Categoria Pai"
+              [(ngModel)]="filtro.categoriaPai">
+            </ng-select>
+          </div>
+          <div class="col-6 col-md-auto">
+            <button type="submit" class="btn btn-primary w-100" title="Pesquisar" aria-label="Pesquisar">
+              <i class="fa-solid fa-magnifying-glass"></i>
+            </button>
+          </div>
+          <div class="col-6 col-md-auto">
+            <button type="button" class="btn btn-outline-secondary w-100" title="Limpar filtros" aria-label="Limpar filtros" (click)="limparFiltros()">
+              <i class="fa-solid fa-eraser"></i>
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <div class="card-body">
+      @if (exibirTabela) {
+      <div class="table-responsive">
+        <table id="datatables-pesquisar-categorias" class="table table-striped table-hover align-middle w-100">
+          <thead>
+            <tr>
+              <th>Ações</th>
+              <th>ID</th>
+              <th>Nome</th>
+              <th>Ativo?</th>
+              <th>Categoria Pai</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (categoria of categorias; track categoria.id) {
+            <tr>
+              <td>
+                <div class="action-stack d-flex gap-1">
+                  <button type="button" class="btn btn-outline-primary btn-sm" title="Editar" (click)="editar(categoria)">
+                    <i class="fa-solid fa-pen-to-square"></i>
+                  </button>
+                  <button type="button" class="btn btn-outline-danger btn-sm" title="Excluir" (click)="excluir(categoria)">
+                    <i class="fa-solid fa-trash-can"></i>
+                  </button>
+                </div>
+              </td>
+              <td>{{ categoria.id }}</td>
+              <td class="record-cell d-flex align-items-center">
+                <span class="text-primary me-2">
+                  <i class="fa-solid fa-layer-group"></i>
+                </span>
+                <div>
+                  <div class="record-main fw-semibold">{{ categoria.nome }}</div>
+                  <div class="record-sub text-secondary small">Categoria</div>
+                </div>
+              </td>
+              <td>{{ categoria.ativo ? 'Sim' : 'Não' }}</td>
+              <td>{{ getNomeCategoriaPai(categoria) }}</td>
+            </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+      }
+    </div>
+  </section>
+</section>

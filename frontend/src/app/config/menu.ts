@@ -10,6 +10,15 @@ export const menu: Menu[] = [
     path: "/marcas",
     roles: [`${PREFIXO_PERFIL_SISTEMA}CAIXA`],
     subMenus: []
+  },
+
+  {
+    id: "categoria",
+    texto: "Categorias",
+    icone: "layer-group",
+    path: "/categorias",
+    roles: [`${PREFIXO_PERFIL_SISTEMA}CAIXA`],
+    subMenus: []
   }
 
 ];

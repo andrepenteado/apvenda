@@ -1,0 +1,162 @@
+<ngx-ui-loader
+  loaderId="categoria-cadastro"
+  fgsType="three-bounce"
+  fgsColor="#0d6efd"
+  overlayColor="rgba(255, 255, 255, 0.82)"
+  pbColor="#0d6efd"
+  [hasProgressBar]="true">
+</ngx-ui-loader>
+
+<nav aria-label="breadcrumb" class="mb-3">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item">
+      <a routerLink="/pagina-inicial">
+        <i class="fa-solid fa-house me-1"></i>
+        Início
+      </a>
+    </li>
+    <li class="breadcrumb-item">
+      <a routerLink="/categorias/pesquisar">Categorias</a>
+    </li>
+    <li class="breadcrumb-item active" aria-current="page">Cadastro</li>
+  </ol>
+</nav>
+
+<section class="container py-3">
+  <section class="row g-3 align-items-start mb-4">
+    <div class="col">
+      <div class="text-uppercase small text-secondary fw-semibold mb-1">
+        <i class="fa-solid fa-layer-group me-1"></i>
+        Cadastro
+      </div>
+      <h1 class="h3 fw-bold mb-1">{{ modoEdicao ? 'Editar Categoria' : 'Nova Categoria' }}</h1>
+      <p class="text-secondary mb-0">Informe os dados cadastrais da categoria.</p>
+    </div>
+
+    @if (modoEdicao) {
+    <div class="col-auto d-none d-md-block">
+      <div class="card">
+        <div class="card-body py-2 px-3">
+          <div class="d-flex align-items-center gap-3 small" style="font-size: .78rem;">
+            <span class="text-primary">
+              <i class="fa-solid fa-clock-rotate-left fa-lg"></i>
+            </span>
+            <div style="max-width: 12rem;">
+              <div class="text-secondary fw-semibold">Criado por</div>
+              <div class="text-truncate">{{ categoria?.criadoPor || '-' }}</div>
+              <div class="text-secondary fw-semibold mt-1">Criado em</div>
+              <div>{{ categoria?.criadoEm | date:'short' }}</div>
+            </div>
+            @if (categoria?.alteradoPor || categoria?.alteradoEm) {
+            <div style="max-width: 12rem;">
+              <div class="text-secondary fw-semibold">Alterado por</div>
+              <div class="text-truncate">{{ categoria?.alteradoPor || '-' }}</div>
+              <div class="text-secondary fw-semibold mt-1">Alterado em</div>
+              <div>{{ categoria?.alteradoEm ? (categoria?.alteradoEm | date:'short') : '-' }}</div>
+            </div>
+            }
+          </div>
+        </div>
+      </div>
+    </div>
+    }
+  </section>
+
+  <form [formGroup]="form" (ngSubmit)="gravar()">
+    <div class="card">
+      <div class="card-body">
+        <ul class="nav nav-pills mb-4">
+          <li class="nav-item">
+            <button class="nav-link active rounded-pill px-3" type="button">
+              <i class="fa-solid fa-layer-group me-2"></i>
+              Dados cadastrais
+            </button>
+          </li>
+        </ul>
+
+        <div class="d-flex align-items-center gap-2 mb-3">
+          <span class="d-inline-flex align-items-center justify-content-center rounded bg-primary-subtle text-primary p-2">
+            <i class="fa-solid fa-layer-group"></i>
+          </span>
+          <div>
+            <div class="fw-semibold">Identificação</div>
+            <div class="text-secondary small">Dados principais usados para identificar e organizar a categoria.</div>
+          </div>
+        </div>
+        <hr>
+
+        <div class="row g-3">
+          <div class="col-12 col-md-8">
+            <label for="nome" class="form-label fw-semibold required-label text-danger">
+              Nome
+              <i class="fa-solid fa-circle-exclamation text-danger help-dot ms-1"></i>
+            </label>
+            <div class="input-group">
+              <span class="input-group-text">
+                <i class="fa-solid fa-font"></i>
+              </span>
+              <input
+                id="nome"
+                type="text"
+                class="form-control"
+                formControlName="nome"
+                [class.is-invalid]="campoInvalido('nome')">
+              <div class="invalid-feedback">Nome é um campo obrigatório.</div>
+            </div>
+          </div>
+
+          <div class="col-12 col-md-4">
+            <div class="form-label fw-semibold required-label text-danger">
+              Ativo?
+              <i class="fa-solid fa-circle-exclamation text-danger help-dot ms-1"></i>
+            </div>
+            <div class="form-check form-switch pt-2">
+              <input
+                id="ativo"
+                type="checkbox"
+                class="form-check-input"
+                formControlName="ativo"
+                [class.is-invalid]="campoInvalido('ativo')">
+              <label for="ativo" class="form-check-label fw-semibold">Categoria ativa</label>
+              <div class="invalid-feedback">Ativo? é um campo obrigatório.</div>
+            </div>
+          </div>
+
+          <div class="col-12 col-md-8">
+            <label for="categoria-pai" class="form-label fw-semibold">Categoria Pai</label>
+            <div class="input-group">
+              <span class="input-group-text">
+                <i class="fa-solid fa-layer-group"></i>
+              </span>
+              <ng-select
+                id="categoria-pai"
+                class="ng-select-bootstrap"
+                [items]="categoriasPaiDisponiveis"
+                bindLabel="nome"
+                bindValue="id"
+                placeholder="Categoria Pai"
+                formControlName="categoriaPai">
+              </ng-select>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mt-3">
+      <div class="text-secondary small">
+        Campos com indicação em vermelho são obrigatórios.
+      </div>
+      <div class="d-flex justify-content-end gap-2">
+        <button type="button" class="btn btn-outline-secondary" (click)="voltar()">
+          <i class="fa-solid fa-arrow-left me-1"></i>
+          Voltar
+        </button>
+        <button type="submit" class="btn btn-primary" [disabled]="carregando">
+          <i class="fa-solid fa-floppy-disk me-1"></i>
+          Gravar
+        </button>
+      </div>
+    </div>
+  </form>
+</section>

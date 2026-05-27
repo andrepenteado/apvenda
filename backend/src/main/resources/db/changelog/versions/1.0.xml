@@ -29,4 +29,42 @@
         </createIndex>
     </changeSet>
 
+    <changeSet id="2026-05-27" author="André Penteado">
+        <createTable tableName="categoria">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="pk_categoria"/>
+            </column>
+            <column name="nome" type="VARCHAR">
+                <constraints nullable="false" unique="true" uniqueConstraintName="un_categoria_nome"/>
+            </column>
+            <column name="ativo" type="BOOLEAN">
+                <constraints nullable="false"/>
+            </column>
+            <column name="fk_categoria_pai" type="BIGINT"/>
+            <column name="criado_por" type="VARCHAR">
+                <constraints nullable="false"/>
+            </column>
+            <column name="criado_em" type="TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="alterado_por" type="VARCHAR"/>
+            <column name="alterado_em" type="TIMESTAMP"/>
+        </createTable>
+
+        <addForeignKeyConstraint
+            baseTableName="categoria"
+            baseColumnNames="fk_categoria_pai"
+            constraintName="fk_categoria_categoria_pai"
+            referencedTableName="categoria"
+            referencedColumnNames="id"/>
+
+        <createIndex tableName="categoria" indexName="idx_categoria_nome">
+            <column name="nome"/>
+        </createIndex>
+
+        <createIndex tableName="categoria" indexName="idx_categoria_categoria_pai">
+            <column name="fk_categoria_pai"/>
+        </createIndex>
+    </changeSet>
+
 </databaseChangeLog>
