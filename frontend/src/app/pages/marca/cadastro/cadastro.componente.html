@@ -87,8 +87,8 @@
 
         <div class="row g-3">
           <div class="col-12 col-md-8">
-            <label for="descricao" class="form-label fw-semibold required-label text-danger">
-              Descrição
+            <label for="nome" class="form-label fw-semibold required-label text-danger">
+              Nome
               <i class="fa-solid fa-circle-exclamation text-danger help-dot ms-1"></i>
             </label>
             <div class="input-group">
@@ -96,12 +96,12 @@
                 <i class="fa-solid fa-font"></i>
               </span>
               <input
-                id="descricao"
+                id="nome"
                 type="text"
                 class="form-control"
-                formControlName="descricao"
-                [class.is-invalid]="campoInvalido('descricao')">
-              <div class="invalid-feedback">Descrição é um campo obrigatório.</div>
+                formControlName="nome"
+                [class.is-invalid]="campoInvalido('nome')">
+              <div class="invalid-feedback">Nome é um campo obrigatório.</div>
             </div>
           </div>
         </div>

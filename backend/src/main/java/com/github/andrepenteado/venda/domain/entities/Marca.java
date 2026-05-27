@@ -30,9 +30,9 @@ public class Marca implements Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotBlank(message = "Descrição é um campo obrigatório")
+    @NotBlank(message = "Nome é um campo obrigatório")
     @Column(nullable = false, unique = true)
-    private String descricao;
+    private String nome;
 
     @Column(name = "criado_por", nullable = false)
     private String criadoPor;
@@ -65,21 +65,21 @@ public class Marca implements Serializable {
     }
 
     /**
-     * Retorna a descrição da Marca.
+     * Retorna o nome da Marca.
      *
-     * @return descrição da Marca.
+     * @return nome da Marca.
      */
-    public String getDescricao() {
-        return descricao;
+    public String getNome() {
+        return nome;
     }
 
     /**
-     * Define a descrição da Marca.
+     * Define o nome da Marca.
      *
-     * @param descricao descrição da Marca.
+     * @param nome nome da Marca.
      */
-    public void setDescricao(String descricao) {
-        this.descricao = descricao;
+    public void setNome(String nome) {
+        this.nome = nome;
     }
 
     /**
@@ -190,7 +190,7 @@ public class Marca implements Serializable {
     public String toString() {
         return "Marca{" +
             "id=" + id +
-            ", descricao='" + descricao + '\'' +
+            ", nome='" + nome + '\'' +
             '}';
     }
 

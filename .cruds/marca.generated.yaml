@@ -1,8 +1,8 @@
 crud: marca
 metadados: .cruds/marca.yaml
-checksumNormalizado: "sha256:d50285a5ac80b13ce0916df5886830e1be3e86008fa17d97f69983410542ebd2"
-executadoEm: "2026-05-26T17:28:17-03:00"
-status: criado
+checksumNormalizado: "sha256:629960ef4fc702e9c3b683fa79406815e0ef479e5645fb61ec53637d85a99f24"
+executadoEm: "2026-05-27T15:57:58-03:00"
+status: atualizado
 arquivos:
   - backend/pom.xml
   - backend/src/main/resources/db/changelog/versions/1.0.xml

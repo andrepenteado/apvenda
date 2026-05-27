@@ -63,7 +63,7 @@ public class MarcaResource {
      */
     @GetMapping("/pesquisar")
     public Iterable<Marca> pesquisar(MarcaFilter filtro) {
-        LOGGER.info("GET /marcas/pesquisar - Pesquisar Marcas: descricao={}", filtro.getDescricao());
+        LOGGER.info("GET /marcas/pesquisar - Pesquisar Marcas: nome={}", filtro.getNome());
         return service.pesquisar(filtro);
     }
 

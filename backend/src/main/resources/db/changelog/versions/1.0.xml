@@ -11,8 +11,8 @@
             <column name="id" type="BIGINT" autoIncrement="true">
                 <constraints nullable="false" primaryKey="true" primaryKeyName="pk_marca"/>
             </column>
-            <column name="descricao" type="VARCHAR">
-                <constraints nullable="false" unique="true" uniqueConstraintName="un_marca_descricao"/>
+            <column name="nome" type="VARCHAR">
+                <constraints nullable="false" unique="true" uniqueConstraintName="un_marca_nome"/>
             </column>
             <column name="criado_por" type="VARCHAR">
                 <constraints nullable="false"/>
@@ -24,8 +24,8 @@
             <column name="alterado_em" type="TIMESTAMP"/>
         </createTable>
 
-        <createIndex tableName="marca" indexName="idx_marca_descricao">
-            <column name="descricao"/>
+        <createIndex tableName="marca" indexName="idx_marca_nome">
+            <column name="nome"/>
         </createIndex>
     </changeSet>
 

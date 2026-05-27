@@ -57,7 +57,7 @@ export class PesquisarComponente implements OnInit, OnDestroy {
   }
 
   pesquisar(): void {
-    if (!this.filtro.descricao || this.filtro.descricao.trim() === '') {
+    if (!this.filtro.nome || this.filtro.nome.trim() === '') {
       this.mensagemService.showMessage(
         'Informe ao menos um filtro para pesquisar.',
         'Marcas',

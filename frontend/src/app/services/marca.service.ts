@@ -12,12 +12,12 @@ import { Marca } from '../domain/entities/marca';
 
 export interface MarcaFiltro {
 
-  descricao?: string;
+  nome?: string;
 
 }
 
 export const MARCA_CAMPOS_PESQUISA: { campo: keyof MarcaFiltro; label: string; tipo: string }[] = [
-  { campo: 'descricao', label: 'Descrição', tipo: 'string' }
+  { campo: 'nome', label: 'Nome', tipo: 'string' }
 ];
 
 @Injectable({
@@ -35,8 +35,8 @@ export class MarcaService {
   pesquisar(filtro: MarcaFiltro): Observable<Marca[]> {
     let params = new HttpParams();
 
-    if (filtro.descricao != null && filtro.descricao.trim() !== '') {
-      params = params.set('descricao', filtro.descricao.trim());
+    if (filtro.nome != null && filtro.nome.trim() !== '') {
+      params = params.set('nome', filtro.nome.trim());
     }
 
     return this.http.get<Marca[]>(`${this.initConfig.urlBackend}${API_MARCAS}/pesquisar`, { params });
