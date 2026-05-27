@@ -1,1 +1,30 @@
-/* You can add global styles to this file, and also import other style files */
+/* Estilos globais compartilhados pelos CRUDs.
+   Preferir Bootstrap 5; manter aqui somente complementos reutilizáveis. */
+
+.action-stack .btn {
+  align-items: center;
+  display: inline-flex;
+  justify-content: center;
+}
+
+.record-main,
+.record-sub {
+  display: block;
+}
+
+.record-main {
+  color: var(--bs-body-color);
+}
+
+.record-sub {
+  color: var(--bs-secondary-color);
+}
+
+.required-label {
+  color: var(--bs-danger);
+}
+
+.help-dot {
+  color: rgba(var(--bs-danger-rgb), .8);
+  font-size: .78rem;
+}

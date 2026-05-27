@@ -6,6 +6,11 @@ export const DECORATED_ROUTES: Routes = [
   { path: "", component: PaginaInicialComponent },
 
   {
+    path: "marcas",
+    loadChildren: () => import("../pages/marca/marca.routes").then(m => m.MARCA_ROUTES)
+  },
+
+  {
     path: "pagina-inicial",
     component: PaginaInicialComponent
   }

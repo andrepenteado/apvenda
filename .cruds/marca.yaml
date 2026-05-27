@@ -1,12 +1,5 @@
 crud:
   nome: marca
-  versao: 1
-  tipoExecucao: criacao
-
-alteracoes:
-  - versao: 1
-    tipo: criacao
-    descricao: Criação inicial do CRUD de Marca.
 
 autor: André Penteado
 

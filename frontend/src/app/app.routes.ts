@@ -1,9 +1,10 @@
 import { Routes } from '@angular/router';
 import {
   AuthorizedComponent,
-  LayoutPadraoComponent,
+  LayoutSimplesComponent,
   LoginComponent,
-  LogoutComponent, SemLayoutComponent
+  LogoutComponent,
+  SemLayoutComponent
 } from '@andre.penteado/ngx-apcore';
 import { DECORATED_ROUTES, NO_DECORATED_ROUTES } from './config/routes';
 
@@ -19,7 +20,7 @@ export const routes: Routes = [
 
   {
     path: "",
-    component: LayoutPadraoComponent,
+    component: LayoutSimplesComponent,
     children: DECORATED_ROUTES
   },
 
