@@ -14,24 +14,24 @@ import com.querydsl.core.types.Predicate;
  */
 public class MarcaFilter {
 
-    private String descricao;
+    private String nome;
 
     /**
-     * Retorna a descrição usada na pesquisa de Marca.
+     * Retorna o nome usado na pesquisa de Marca.
      *
-     * @return descrição usada na pesquisa.
+     * @return nome usado na pesquisa.
      */
-    public String getDescricao() {
-        return descricao;
+    public String getNome() {
+        return nome;
     }
 
     /**
-     * Define a descrição usada na pesquisa de Marca.
+     * Define o nome usado na pesquisa de Marca.
      *
-     * @param descricao descrição usada na pesquisa.
+     * @param nome nome usado na pesquisa.
      */
-    public void setDescricao(String descricao) {
-        this.descricao = descricao;
+    public void setNome(String nome) {
+        this.nome = nome;
     }
 
     /**
@@ -43,8 +43,8 @@ public class MarcaFilter {
         QMarca marca = QMarca.marca;
         BooleanBuilder builder = new BooleanBuilder();
 
-        if (descricao != null && !descricao.isBlank()) {
-            builder.and(marca.descricao.containsIgnoreCase(descricao.trim()));
+        if (nome != null && !nome.isBlank()) {
+            builder.and(marca.nome.containsIgnoreCase(nome.trim()));
         }
 
         return builder;

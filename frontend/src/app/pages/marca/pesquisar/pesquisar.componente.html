@@ -50,7 +50,7 @@
       <div class="card h-100">
         <div class="card-body">
           <div class="text-secondary small">Campo principal</div>
-          <div class="fs-5 fw-semibold">Descrição</div>
+          <div class="fs-5 fw-semibold">Nome</div>
         </div>
       </div>
     </div>
@@ -83,13 +83,13 @@
         <form class="row g-2 align-items-center" (ngSubmit)="pesquisar()">
           <div class="col-12 col-md">
             <input
-              id="filtro-descricao"
+              id="filtro-nome"
               type="text"
-              name="descricao"
+              name="nome"
               class="form-control"
-              placeholder="Descrição"
-              aria-label="Descrição"
-              [(ngModel)]="filtro.descricao">
+              placeholder="Nome"
+              aria-label="Nome"
+              [(ngModel)]="filtro.nome">
           </div>
           <div class="col-6 col-md-auto">
             <button type="submit" class="btn btn-primary w-100" title="Pesquisar" aria-label="Pesquisar">
@@ -113,7 +113,7 @@
             <tr>
               <th>Ações</th>
               <th>ID</th>
-              <th>Descrição</th>
+              <th>Nome</th>
             </tr>
           </thead>
           <tbody>
@@ -135,7 +135,7 @@
                   <i class="fa-solid fa-tag"></i>
                 </span>
                 <div>
-                  <div class="record-main fw-semibold">{{ marca.descricao }}</div>
+                  <div class="record-main fw-semibold">{{ marca.nome }}</div>
                   <div class="record-sub text-secondary small">Marca</div>
                 </div>
               </td>

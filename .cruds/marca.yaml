@@ -20,9 +20,9 @@ tabela:
       exibe-grid: true
       colunas-layout: 0
 
-    - nome: descricao
+    - nome: nome
       tipo: string
-      label: Descrição
+      label: Nome
       obrigatorio: true
       unique: true
       indice: true

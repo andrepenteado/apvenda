@@ -29,7 +29,7 @@ export class CadastroComponente implements OnInit {
 
   readonly form = inject(FormBuilder).nonNullable.group({
     id: [{ value: undefined as number | undefined, disabled: true }],
-    descricao: ['', [Validators.required]]
+    nome: ['', [Validators.required]]
   });
 
   private readonly loaderId = 'marca-cadastro';
@@ -58,7 +58,7 @@ export class CadastroComponente implements OnInit {
         this.marca = marca;
         this.form.patchValue({
           id: marca.id,
-          descricao: marca.descricao
+          nome: marca.nome
         });
         this.pararLoader();
       },
@@ -92,7 +92,7 @@ export class CadastroComponente implements OnInit {
     this.router.navigate(['/marcas/pesquisar']);
   }
 
-  campoInvalido(campo: 'descricao'): boolean {
+  campoInvalido(campo: 'nome'): boolean {
     const controle = this.form.controls[campo];
     return controle.invalid && (controle.dirty || controle.touched);
   }
@@ -100,7 +100,7 @@ export class CadastroComponente implements OnInit {
   private montarMarca(): Marca {
     return {
       id: this.marca?.id,
-      descricao: this.form.controls.descricao.value,
+      nome: this.form.controls.nome.value,
       criadoPor: this.marca?.criadoPor,
       criadoEm: this.marca?.criadoEm,
       alteradoPor: this.marca?.alteradoPor,

@@ -67,7 +67,7 @@ public class MarcaService {
     @Transactional(readOnly = true)
     @Secured(VendaApplication.PERFIL_CAIXA)
     public Iterable<Marca> pesquisar(MarcaFilter filtro) {
-        LOGGER.info("Pesquisando Marcas com filtro: descricao={}", filtro.getDescricao());
+        LOGGER.info("Pesquisando Marcas com filtro: nome={}", filtro.getNome());
         return repository.findAll(filtro.toPredicate());
     }
 
