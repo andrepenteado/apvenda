@@ -9,10 +9,10 @@ import { provideRouter } from '@angular/router';
 import "zone.js";
 import { routes } from './app.routes';
 import { provideAnimations } from '@angular/platform-browser/animations';
-import { HTTP_INTERCEPTORS, provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
+import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 import { ToastrModule } from 'ngx-toastr';
 import { INIT_CONFIG, InitConfig } from './config/init-config.token';
-import { HttpErrorsInterceptor, PARAMS, WithCredentialsInterceptor } from '@andre.penteado/ngx-apcore';
+import { PARAMS, provideApcoreHttpInterceptors } from '@andre.penteado/ngx-apcore';
 import { LOGOTIPO, MODULO, PREFIXO_PERFIL_SISTEMA } from './config/layout';
 import { menu } from './config/menu';
 import localePT from '@angular/common/locales/pt';
@@ -29,6 +29,7 @@ export const appConfig: ApplicationConfig = {
     provideZoneChangeDetection({eventCoalescing: true}),
     provideAnimations(),
     provideHttpClient(withInterceptorsFromDi()),
+    provideApcoreHttpInterceptors(),
     importProvidersFrom(
       ToastrModule.forRoot()
     ),
@@ -47,18 +48,9 @@ export const appConfig: ApplicationConfig = {
         menu: menu,
         sistema: MODULO,
         urlBackend: CONFIG.urlBackend,
+        urlPortal: CONFIG.urlPortal,
         prefixoPerfil: PREFIXO_PERFIL_SISTEMA
       }
-    },
-    {
-      provide: HTTP_INTERCEPTORS,
-      useClass: HttpErrorsInterceptor,
-      multi: true
-    },
-    {
-      provide: HTTP_INTERCEPTORS,
-      useClass: WithCredentialsInterceptor,
-      multi: true
     }
   ]
 };

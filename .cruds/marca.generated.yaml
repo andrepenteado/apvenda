@@ -1,0 +1,23 @@
+crud: marca
+metadados: .cruds/marca.yaml
+checksumNormalizado: "sha256:d50285a5ac80b13ce0916df5886830e1be3e86008fa17d97f69983410542ebd2"
+executadoEm: "2026-05-26T17:28:17-03:00"
+status: criado
+arquivos:
+  - backend/pom.xml
+  - backend/src/main/resources/db/changelog/versions/1.0.xml
+  - backend/src/main/java/com/github/andrepenteado/venda/domain/entities/Marca.java
+  - backend/src/main/java/com/github/andrepenteado/venda/domain/filter/MarcaFilter.java
+  - backend/src/main/java/com/github/andrepenteado/venda/domain/repositories/MarcaRepository.java
+  - backend/src/main/java/com/github/andrepenteado/venda/services/MarcaService.java
+  - backend/src/main/java/com/github/andrepenteado/venda/resources/MarcaResource.java
+  - frontend/src/app/config/api.ts
+  - frontend/src/app/config/routes.ts
+  - frontend/src/app/config/menu.ts
+  - frontend/src/app/domain/entities/marca.ts
+  - frontend/src/app/services/marca.service.ts
+  - frontend/src/app/pages/marca/marca.routes.ts
+  - frontend/src/app/pages/marca/pesquisar/pesquisar.componente.ts
+  - frontend/src/app/pages/marca/pesquisar/pesquisar.componente.html
+  - frontend/src/app/pages/marca/cadastro/cadastro.componente.ts
+  - frontend/src/app/pages/marca/cadastro/cadastro.componente.html
