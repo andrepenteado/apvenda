@@ -13,7 +13,7 @@ import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http'
 import { ToastrModule } from 'ngx-toastr';
 import { INIT_CONFIG, InitConfig } from './config/init-config.token';
 import { PARAMS, provideApcoreHttpInterceptors } from '@andre.penteado/ngx-apcore';
-import { LOGOTIPO, MODULO, PREFIXO_PERFIL_SISTEMA } from './config/layout';
+import { DESCRICAO, LOGOTIPO, MODULO, PREFIXO_PERFIL_SISTEMA } from './config/layout';
 import { menu } from './config/menu';
 import localePT from '@angular/common/locales/pt';
 import { registerLocaleData } from '@angular/common';
@@ -47,6 +47,7 @@ export const appConfig: ApplicationConfig = {
         logotipo: LOGOTIPO,
         menu: menu,
         sistema: MODULO,
+        descricao: DESCRICAO,
         urlBackend: CONFIG.urlBackend,
         urlPortal: CONFIG.urlPortal,
         prefixoPerfil: PREFIXO_PERFIL_SISTEMA
