@@ -37,102 +37,13 @@
 .form-select,
 .input-group-text,
 .btn,
-.form-check-input,
-.ng-select .ng-select-container {
+.form-check-input {
   border-radius: .5rem;
 }
 
 .input-group-text {
   justify-content: center;
   min-width: 2.75rem;
-}
-
-.input-group > .ng-select {
-  flex: 1 1 auto;
-  min-width: 0;
-  width: 1%;
-}
-
-.input-group > .input-group-text + .ng-select .ng-select-container {
-  border-bottom-left-radius: 0;
-  border-left: 0;
-  border-top-left-radius: 0;
-}
-
-.ng-select.ng-select-bootstrap .ng-select-container {
-  background-color: var(--bs-body-bg);
-  border: var(--bs-border-width) solid var(--bs-border-color);
-  color: var(--bs-body-color);
-  min-height: calc(1.5em + .75rem + calc(var(--bs-border-width) * 2));
-}
-
-.ng-select.ng-select-bootstrap .ng-select-container:hover {
-  border-color: var(--bs-border-color);
-}
-
-.ng-select.ng-select-bootstrap.ng-select-focused .ng-select-container {
-  border-color: #86b7fe;
-  box-shadow: 0 0 0 .25rem rgba(13, 110, 253, .25);
-}
-
-.input-group > .ng-select.ng-select-bootstrap.ng-select-focused .ng-select-container {
-  position: relative;
-  z-index: 5;
-}
-
-.ng-select.ng-select-bootstrap .ng-value-container {
-  padding-left: .75rem;
-}
-
-.ng-select.ng-select-bootstrap .ng-value,
-.ng-select.ng-select-bootstrap .ng-placeholder,
-.ng-select.ng-select-bootstrap .ng-input > input {
-  color: var(--bs-body-color);
-}
-
-.ng-select.ng-select-bootstrap .ng-placeholder {
-  color: var(--bs-secondary-color);
-}
-
-.ng-select.ng-select-bootstrap .ng-arrow-wrapper {
-  padding-right: .75rem;
-}
-
-.ng-select.ng-select-bootstrap .ng-dropdown-panel {
-  background-color: var(--bs-body-bg);
-  border: var(--bs-border-width) solid var(--bs-border-color);
-  border-radius: .5rem;
-  box-shadow: var(--bs-box-shadow);
-  margin-top: .125rem;
-  overflow: hidden;
-  z-index: 1060;
-}
-
-.ng-select.ng-select-bootstrap .ng-dropdown-panel .ng-dropdown-panel-items {
-  max-height: 16rem;
-}
-
-.ng-select.ng-select-bootstrap .ng-dropdown-panel .ng-option {
-  color: var(--bs-body-color);
-  padding: .5rem .75rem;
-}
-
-.ng-select.ng-select-bootstrap .ng-dropdown-panel .ng-option.ng-option-marked {
-  background-color: var(--bs-primary-bg-subtle);
-  color: var(--bs-primary-text-emphasis);
-}
-
-.ng-select.ng-select-bootstrap .ng-dropdown-panel .ng-option.ng-option-selected {
-  background-color: var(--bs-primary);
-  color: var(--bs-white);
-}
-
-.ng-select.ng-select-bootstrap.ng-invalid.ng-touched .ng-select-container {
-  border-color: var(--bs-danger);
-}
-
-.ng-select.ng-select-bootstrap.ng-invalid.ng-touched.ng-select-focused .ng-select-container {
-  box-shadow: 0 0 0 .25rem rgba(var(--bs-danger-rgb), .25);
 }
 
 .table > :not(caption) > * > * {

@@ -9,7 +9,8 @@ export const menu: Menu[] = [
     icone: "tag",
     path: "/marcas",
     roles: [`${PREFIXO_PERFIL_SISTEMA}CAIXA`],
-    subMenus: []
+    subMenus: [
+    ]
   },
 
   {
@@ -18,7 +19,8 @@ export const menu: Menu[] = [
     icone: "layer-group",
     path: "/categorias",
     roles: [`${PREFIXO_PERFIL_SISTEMA}CAIXA`],
-    subMenus: []
+    subMenus: [
+    ]
   }
 
 ];

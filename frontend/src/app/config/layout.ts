@@ -1,5 +1,7 @@
-export const LOGOTIPO: string = "<img class='img-fluid float-right' src='assets/images/banner-venda.png' width='230'/>";
+export const LOGOTIPO: string = "assets/images/banner-venda.png";
 
-export const MODULO: string = "Módulo de Vendas";
+export const MODULO: string = "Vendas PRO";
+
+export const DESCRICAO: string = "Gestão Inteligente de Produtos";
 
 export const PREFIXO_PERFIL_SISTEMA: string = "ROLE_com.github.andrepenteado.venda_"
