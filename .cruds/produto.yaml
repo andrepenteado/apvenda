@@ -1,0 +1,144 @@
+crud:
+  nome: produto
+
+autor: André Penteado
+
+projeto:
+  nome: venda
+  perfis:
+    - VendaApplication.PERFIL_CAIXA:CAIXA
+
+# Origem: sistema legado Clipper, arquivo estoque/MAT_004.DBF (2165 produtos).
+# Só foram mapeados campos com dados reais e que NÃO aparentam ser calculados.
+# Descartados por serem vazios/constantes/calculados: CODBAR, CODIGOSUBS, DV,
+# QTMINIMA, QTMAXIMA, PEDIDOS, CUSTOMED,
+# CUSTOIND, ICMS, REDBASE, HISTORICO, MEDIAMES, VENDAMES, COMPRADIA, COMPRAMES,
+# VENDEU, FATUROU, PR_PORC (markup calculado), DESCMARCA/FAVORECIDO (desnormalizados),
+# ETI1..ETI4, APLICACAO, e as datas derivadas DT* (DTULTSAID, DTPVENDA, etc.).
+tabela:
+  nome: produto
+  label: Produto
+  plural: Produtos
+  campos:
+    # id = MAT_004.CODIGO (N,6). O código do produto no Clipper é preservado como
+    # PK na migração (setval ajusta a sequence depois). Continua autoincrementável
+    # para novos produtos criados pela aplicação.
+    - nome: id
+      tipo: long
+      pk: true
+      autoincremento: true
+      exibe-grid: true
+      colunas-layout: 0
+
+    # MAT_004.DESCRICAO (C,35) - nome completo do produto (não é único: há repetições).
+    - nome: nome
+      tipo: texto3
+      label: Nome
+      obrigatorio: true
+      unique: false
+      indice: true
+      pesquisavel: contem
+      colunas-layout: 8
+      exibe-grid: true
+
+    # Novo campo (não existe no legado): foto do produto.
+    # tipo foto -> FK para a tabela upload (lib APcore). Miniatura clicável no
+    # formulário para incluir/editar a imagem.
+    - nome: foto
+      tipo: foto
+      label: Foto
+      obrigatorio: false
+      colunas-layout: 4*
+      exibe-grid: false
+
+    # MAT_004.CODBAR (C,13) - código de barras (vazio no backup 2012, presente nos
+    # dados atuais). Pesquisável e indexado para leitura rápida.
+    - nome: codigo_barras
+      tipo: string
+      label: Código de Barras
+      obrigatorio: false
+      unique: false
+      indice: true
+      pesquisavel: exato
+      colunas-layout: 8
+      exibe-grid: false
+
+    # MAT_004.ATIVO (C,1) 'S'/'N' -> boolean.
+    - nome: ativo
+      tipo: boolean
+      label: Ativo?
+      obrigatorio: true
+      pesquisavel: exato
+      colunas-layout: 4*
+      exibe-grid: true
+
+    # MAT_004.GRUPO (N,3) -> FK categoria (id preservado do CODIGO do grupo na migração).
+    # Obrigatória: registros legados sem grupo recebem uma categoria de compatibilidade.
+    - nome: categoria
+      tipo: long
+      label: Categoria
+      fk: categoria
+      fk-display: nome
+      obrigatorio: true
+      indice: true
+      pesquisavel: exato
+      colunas-layout: 4
+      exibe-grid: true
+
+    # MAT_004.MARCA (N,4) -> FK marca.
+    # Obrigatória: registros legados sem marca recebem uma marca de compatibilidade.
+    - nome: marca
+      tipo: long
+      label: Marca
+      fk: marca
+      fk-display: nome
+      obrigatorio: true
+      indice: true
+      pesquisavel: exato
+      colunas-layout: 4
+      exibe-grid: true
+
+    # MAT_004.UNIDADE (C,2) -> enum Unidade (definido em backend/.../domain/enums/Unidade.java
+    # e frontend/.../domain/enums/unidade.ts). Gravado no banco como o nome (STRING).
+    # No legado só há PC (Peça) e MT (Metro); a migração faz de/para: PC->PECA,
+    # MT->METRO, e qualquer valor inválido/vazio recebe o default UNIDADE.
+    - nome: unidade
+      tipo: string
+      label: Unidade
+      enum: Unidade
+      obrigatorio: true
+      pesquisavel: exato
+      colunas-layout: 4*
+      exibe-grid: false
+
+    # MAT_004.CUSTOCOM (N,11,2) - custo de compra.
+    - nome: custo_compra
+      tipo: decimal
+      label: Custo de Compra
+      obrigatorio: false
+      colunas-layout: 4
+      exibe-grid: false
+
+    # MAT_004.VENDA (N,11,2) - preço de venda.
+    - nome: preco_venda
+      tipo: decimal
+      label: Preço de Venda
+      obrigatorio: false
+      colunas-layout: 4
+      exibe-grid: true
+
+    # MAT_004.QTATUAL (N,11,2) - saldo de estoque atual. Único campo calculado que
+    # será migrado (a pedido); nos demais dados novos ele deve vir do movimento.
+    - nome: estoque_atual
+      tipo: decimal
+      label: Estoque Atual
+      obrigatorio: false
+      colunas-layout: 4*
+      exibe-grid: true
+
+    - nome: observacao
+      tipo: texto5
+      label: Observação
+      obrigatorio: false
+      colunas-layout: 12*
+      exibe-grid: false

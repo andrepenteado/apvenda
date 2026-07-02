@@ -16,6 +16,16 @@ export const DECORATED_ROUTES: Routes = [
   },
 
   {
+    path: "produtos",
+    loadChildren: () => import("../pages/produto/produto.routes").then(m => m.PRODUTO_ROUTES)
+  },
+
+  {
+    path: "pdv",
+    loadChildren: () => import("../pages/pdv/pdv.routes").then(m => m.PDV_ROUTES)
+  },
+
+  {
     path: "pagina-inicial",
     component: PaginaInicialComponent
   }
