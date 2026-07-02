@@ -1,0 +1,247 @@
+<section class="container-fluid py-3 d-print-none">
+
+  <!-- Cabeçalho: campos de operação + ícone de PDV centralizado à direita -->
+  <div class="row g-3 align-items-center mb-3">
+    <div class="col">
+      <div class="row g-2 align-items-end pdv-campos">
+        <div class="col-12 col-lg-6">
+          <label class="form-label fw-semibold mb-1">Produto <span class="text-secondary small">[F2]</span></label>
+          <ng-select
+            #pesquisaSelect
+            class="ng-select-bootstrap pdv-select"
+            [items]="produtos"
+            [typeahead]="pesquisa$"
+            [loading]="buscando"
+            bindLabel="nome"
+            [minTermLength]="1"
+            typeToSearchText="Digite o nome ou o código de barras"
+            notFoundText="Nenhum produto encontrado"
+            loadingText="Buscando..."
+            [(ngModel)]="produtoModel"
+            (change)="selecionarProduto($event)">
+            <ng-template ng-option-tmp let-item="item">
+              <div class="d-flex justify-content-between">
+                <span>{{ item.nome }}</span>
+                <span class="text-muted ms-3">{{ item.precoVenda != null ? (item.precoVenda | number:'1.2-2') : '-' }}</span>
+              </div>
+            </ng-template>
+          </ng-select>
+        </div>
+
+        <div class="col-6 col-lg-3">
+          <label class="form-label fw-semibold mb-1">Quantidade <span class="text-secondary small">[F3]</span></label>
+          <div class="input-group">
+            <input
+              #inputQtd
+              type="number"
+              min="0"
+              step="0.001"
+              class="form-control form-control-lg text-end"
+              [(ngModel)]="quantidade"
+              [disabled]="!produtoSelecionado"
+              (keydown.enter)="adicionarAoCarrinho()">
+            <span class="input-group-text">{{ unidadeLabel(produtoSelecionado?.unidade) || '—' }}</span>
+          </div>
+        </div>
+
+        <div class="col-6 col-lg-3">
+          <label class="form-label fw-semibold mb-1">Preço de Venda</label>
+          <input
+            type="text"
+            class="form-control form-control-lg text-end"
+            [value]="produtoSelecionado?.precoVenda != null ? (produtoSelecionado?.precoVenda | number:'1.2-2') : ''"
+            disabled>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-auto d-none d-md-flex align-items-center justify-content-center">
+      <i class="fa-solid fa-cash-register text-primary" style="font-size: 3.5rem;"></i>
+    </div>
+  </div>
+
+  <!-- Carrinho em aspecto de cupom -->
+  <div class="cupom mb-3">
+    <div class="cupom-titulo">{{ cabecalhoCupom }}</div>
+    <div class="cupom-sep"></div>
+    <div class="cupom-row cupom-cabecalho">
+      <span class="col-produto">PRODUTO</span>
+      <span class="col-qtd">QTD</span>
+      <span class="col-unit">VALOR UNITÁRIO</span>
+      <span class="col-total">VALOR TOTAL</span>
+    </div>
+    <div class="cupom-sep"></div>
+    @for (item of itens; track item.produtoId; let i = $index) {
+    <div class="cupom-row" [class.cupom-selecionado]="modoExclusao && i === indiceExclusao">
+      <span class="col-produto">{{ item.nome }}</span>
+      <span class="col-qtd">{{ item.quantidade | number:'1.0-3' }} {{ unidadeLabel(item.unidade) }}</span>
+      <span class="col-unit">{{ item.valorUnitario | number:'1.2-2' }}</span>
+      <span class="col-total">{{ item.valorTotal | number:'1.2-2' }}</span>
+    </div>
+    }
+    @if (itens.length === 0) {
+    <div class="cupom-vazio">Nenhum item na venda.</div>
+    }
+    <div class="cupom-sep"></div>
+    <div class="cupom-row cupom-total">
+      <span class="col-produto">TOTAL</span>
+      <span class="col-total">{{ total | number:'1.2-2' }}</span>
+    </div>
+    @if (modoExclusao) {
+    <div class="text-danger small mt-2 d-print-none">Modo de exclusão: use as setas e [Enter] para excluir, [Esc] para sair.</div>
+    }
+  </div>
+
+  <!-- Rodapé de atalhos -->
+  <div class="text-secondary small border-top pt-2 d-flex flex-wrap gap-3 d-print-none">
+    <span><b>[F2]</b> Produto</span>
+    <span><b>[F3]</b> Quantidade</span>
+    <span><b>[Del]</b> Excluir item</span>
+    <span><b>[F4]</b> Imprimir</span>
+    <span><b>[F10]</b> Realizar pagamento</span>
+    <span><b>[Ctrl+C]</b> Cancelar venda</span>
+  </div>
+</section>
+
+<!-- Modal de pagamento -->
+@if (pagamentoAberto) {
+<div class="modal d-block" tabindex="-1" role="dialog">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title"><i class="fa-solid fa-money-bill-wave me-2"></i>Realizar pagamento</h5>
+      </div>
+      <div class="modal-body">
+        <div class="row g-3">
+          <div class="col-12 col-md-4">
+            <label class="form-label fw-semibold">Valor total</label>
+            <input type="text" class="form-control text-end" [value]="totalConsolidado | number:'1.2-2'" disabled>
+          </div>
+          <div class="col-6 col-md-4">
+            <label class="form-label fw-semibold">Parcelas</label>
+            <select class="form-select" [(ngModel)]="numParcelas" (ngModelChange)="montarLinhasParcela()">
+              @for (n of opcoesParcelas; track n) {
+              <option [ngValue]="n">{{ labelParcelas(n) }}</option>
+              }
+            </select>
+          </div>
+          <div class="col-6 col-md-4">
+            <label class="form-label fw-semibold">Data da 1ª parcela</label>
+            <input type="date" class="form-control" [(ngModel)]="dataPrimeiraParcela" (ngModelChange)="montarLinhasParcela()">
+          </div>
+          <div class="col-6 col-md-4">
+            <label class="form-label fw-semibold">Juros (%)</label>
+            <input type="number" min="0" step="1" class="form-control text-end" [(ngModel)]="juros" (ngModelChange)="montarLinhasParcela()">
+          </div>
+          <div class="col-6 col-md-4">
+            <label class="form-label fw-semibold">Desconto (%)</label>
+            <input type="number" min="0" step="1" class="form-control text-end" [(ngModel)]="desconto" (ngModelChange)="montarLinhasParcela()">
+          </div>
+          <div class="col-12 col-md-4">
+            <label class="form-label fw-semibold">Forma de pagamento</label>
+            <select class="form-select" [(ngModel)]="formaPagamento" (ngModelChange)="montarLinhasParcela()">
+              @for (forma of formasPagamento; track forma.valor) {
+              <option [ngValue]="forma.valor">{{ forma.label }}</option>
+              }
+            </select>
+          </div>
+        </div>
+
+        @if (numParcelas > 1) {
+        <hr>
+        <div class="fw-semibold mb-2">Parcelas</div>
+        <div class="table-responsive">
+          <table class="table table-sm align-middle">
+            <thead>
+              <tr>
+                <th style="width: 3rem;">#</th>
+                <th>Forma de pagamento</th>
+                <th>Vencimento</th>
+                <th class="text-end">Valor da parcela</th>
+                <th class="text-end">Valor pago</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (linha of linhasParcela; track $index; let i = $index) {
+              <tr>
+                <td>{{ i + 1 }}</td>
+                <td>
+                  <select class="form-select form-select-sm" [(ngModel)]="linha.formaPagamento">
+                    @for (forma of formasPagamento; track forma.valor) {
+                    <option [ngValue]="forma.valor">{{ forma.label }}</option>
+                    }
+                  </select>
+                </td>
+                <td>
+                  <input type="date" class="form-control form-control-sm" [(ngModel)]="linha.dataVencimento">
+                </td>
+                <td class="text-end">{{ linha.valorParcela | number:'1.2-2' }}</td>
+                <td>
+                  <input type="number" min="0" step="0.01" class="form-control form-control-sm text-end" [(ngModel)]="linha.valorPago" placeholder="em aberto">
+                </td>
+              </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+        <div class="text-secondary small">Deixe o valor pago em branco para marcar a parcela como em aberto.</div>
+        }
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary" (click)="voltarVenda()">
+          <i class="fa-solid fa-arrow-left me-1"></i>[Esc] Voltar à venda
+        </button>
+        <button type="button" class="btn btn-primary" (click)="finalizarVenda()">
+          <i class="fa-solid fa-check me-1"></i>[Ctrl+F11] Finalizar venda
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="modal-backdrop show"></div>
+}
+
+<!-- Modal de impressão do cupom -->
+@if (impressaoAberta) {
+<div class="modal d-block" tabindex="-1" role="dialog">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-body">
+        <div class="cupom pdv-impressao">
+          <div class="cupom-titulo">{{ cabecalhoCupom }}</div>
+          <div class="cupom-sep"></div>
+          <div class="cupom-row cupom-cabecalho">
+            <span class="col-produto">PRODUTO</span>
+            <span class="col-qtd">QTD</span>
+            <span class="col-unit">VALOR UNITÁRIO</span>
+            <span class="col-total">VALOR TOTAL</span>
+          </div>
+          <div class="cupom-sep"></div>
+          @for (item of itens; track item.produtoId) {
+          <div class="cupom-row">
+            <span class="col-produto">{{ item.nome }}</span>
+            <span class="col-qtd">{{ item.quantidade | number:'1.0-3' }} {{ unidadeLabel(item.unidade) }}</span>
+            <span class="col-unit">{{ item.valorUnitario | number:'1.2-2' }}</span>
+            <span class="col-total">{{ item.valorTotal | number:'1.2-2' }}</span>
+          </div>
+          }
+          <div class="cupom-sep"></div>
+          <div class="cupom-row cupom-total">
+            <span class="col-produto">TOTAL</span>
+            <span class="col-total">{{ total | number:'1.2-2' }}</span>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer d-print-none">
+        <button type="button" class="btn btn-outline-secondary" (click)="fecharImpressao()">
+          <i class="fa-solid fa-x me-1"></i>[Esc] Fechar
+        </button>
+        <button type="button" class="btn btn-primary" (click)="imprimir()">
+          <i class="fa-solid fa-print me-1"></i>[Ctrl+P] Imprimir
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="modal-backdrop show"></div>
+}

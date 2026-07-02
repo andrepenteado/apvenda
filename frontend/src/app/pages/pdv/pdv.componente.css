@@ -1,0 +1,119 @@
+/*
+ * Autor: André Penteado
+ * Criado em: 02/07/2026 -03
+ * Observação: customizações exclusivas da tela de PDV.
+ */
+
+/* Fontes maiores nos campos de operação. */
+.pdv-campos .form-control-lg,
+.pdv-campos .input-group-text {
+  font-size: 1.5rem;
+}
+
+/* ng-select renderiza a própria estrutura interna: precisa de ::ng-deep. */
+.pdv-campos ::ng-deep .ng-select .ng-select-container {
+  font-size: 1.5rem;
+  min-height: calc(1.5em + 1rem + 2px);
+}
+
+/* Cupom fiscal. */
+.cupom {
+  background: #fff;
+  color: #000;
+  font-family: "Courier New", Courier, monospace;
+  border: 1px solid #adb5bd;
+  border-radius: .375rem;
+  padding: 1rem;
+}
+
+.cupom-titulo {
+  text-align: center;
+  font-weight: bold;
+  letter-spacing: .15em;
+}
+
+.cupom-sep {
+  border-top: 1px dashed #000;
+  margin: .35rem 0;
+}
+
+.cupom-row {
+  display: flex;
+  align-items: baseline;
+}
+
+.cupom-cabecalho,
+.cupom-total {
+  font-weight: bold;
+}
+
+.cupom-row .col-produto {
+  flex: 1 1 auto;
+  padding-right: .5rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cupom-row .col-qtd {
+  width: 10rem;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.cupom-row .col-unit,
+.cupom-row .col-total {
+  width: 10rem;
+  text-align: right;
+}
+
+.cupom-total .col-total {
+  margin-left: auto;
+}
+
+.cupom-selecionado {
+  background: #fff3cd;
+}
+
+.cupom-vazio {
+  text-align: center;
+  padding: .5rem 0;
+  color: #6c757d;
+}
+
+/* Impressão: só o modal do cupom vai ao papel, ocupando a folha A4 inteira. */
+@media print {
+  @page {
+    size: A4;
+    margin: 12mm;
+  }
+
+  .modal {
+    position: static !important;
+    display: block !important;
+    overflow: visible !important;
+    background: transparent !important;
+  }
+
+  .modal-dialog {
+    display: block !important;
+    max-width: none !important;
+    width: 100% !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    transform: none !important;
+  }
+
+  .modal-content {
+    border: none !important;
+    box-shadow: none !important;
+  }
+
+  .modal-backdrop {
+    display: none !important;
+  }
+
+  .pdv-impressao .cupom-row .col-produto {
+    white-space: normal;
+  }
+}
