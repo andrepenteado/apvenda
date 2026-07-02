@@ -21,6 +21,26 @@ export const menu: Menu[] = [
     roles: [`${PREFIXO_PERFIL_SISTEMA}CAIXA`],
     subMenus: [
     ]
+  },
+
+  {
+    id: "produto",
+    texto: "Produtos",
+    icone: "box",
+    path: "/produtos",
+    roles: [`${PREFIXO_PERFIL_SISTEMA}CAIXA`],
+    subMenus: [
+    ]
+  },
+
+  {
+    id: "pdv",
+    texto: "PDV",
+    icone: "cash-register",
+    path: "/pdv",
+    roles: [`${PREFIXO_PERFIL_SISTEMA}CAIXA`],
+    subMenus: [
+    ]
   }
 
 ];
