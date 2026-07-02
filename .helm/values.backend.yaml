@@ -1,0 +1,29 @@
+app:
+
+  image:
+    repository: "ghcr.io/andrepenteado/apvenda/backend"
+    tag: ""
+    imagePullSecrets: "github-secret"
+
+  port: 8080
+
+  envVars:
+    SPRING_PROFILES_ACTIVE: prod
+
+  # Segredos vindos do Secret 'apvenda-secrets' (.helm/secret.yaml, fora do git).
+  secretName: apvenda-secrets
+  envSecrets:
+    VENDA_DB_PASSWORD: DB_PASSWORD
+    VENDA_OIDC_CLIENT_SECRET: OIDC_CLIENT_SECRET
+
+  livenessProbe: "/actuator/health/liveness"
+  readinessProbe: "/actuator/health/readiness"
+
+ingress:
+  host: "sistemas.apcode.com.br"
+  context: "/venda-backend"
+  # TLS centralizado: cert do host sistemas.apcode.com.br emitido no namespace 'certs'
+  # e refletido para apvenda (Secret sistemas-apcode-tls). O Ingress não gerencia cert.
+  tlsSecretName: sistemas-apcode-tls
+
+authServer: "https://login.apcode.com.br/actuator/health/readiness"

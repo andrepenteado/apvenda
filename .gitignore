@@ -1,3 +1,7 @@
 .idea/
 .vscode/
 estoque/
+### Segredos do k8s (NÃO versionar — modelo em secret.template.yaml) ###
+.helm/secret.yaml
+### Variáveis de ambiente de DEV (modelo em dev.env.example) ###
+.helm/*.env

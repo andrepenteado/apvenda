@@ -5,7 +5,7 @@ spring:
   datasource:
     url: jdbc:postgresql://db.apcode.com.br/apvenda-dbname
     username: apvenda-dbuser
-    password: ***REMOVED***
+    password: ${VENDA_DB_PASSWORD:}
     driver-class-name: org.postgresql.Driver
     hikari:
       pool-name: apvenda-pool
@@ -27,7 +27,7 @@ spring:
             provider: com.github.andrepenteado.sso.portal
             client-name: APvenda
             client-id: PRODUCAO-venda
-            client-secret: ***REMOVED***
+            client-secret: ${VENDA_OIDC_CLIENT_SECRET:}
             authorization-grant-type: authorization_code
             scope: openid
             redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"

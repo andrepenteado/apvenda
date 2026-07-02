@@ -1,0 +1,18 @@
+app:
+
+  image:
+    repository: "ghcr.io/andrepenteado/apvenda/frontend"
+    tag: ""
+    imagePullSecrets: "github-secret"
+
+  port: 80
+
+  envVars:
+    URL_BACKEND: https://sistemas.apcode.com.br/venda-backend
+    URL_PORTAL: https://sistemas.apcode.com.br/portal/login
+
+ingress:
+  host: "sistemas.apcode.com.br"
+  context: "/venda"
+  # TLS centralizado: cert refletido do namespace 'certs' (Secret sistemas-apcode-tls).
+  tlsSecretName: sistemas-apcode-tls

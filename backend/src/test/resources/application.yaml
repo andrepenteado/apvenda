@@ -3,7 +3,7 @@ spring:
   datasource:
     url: jdbc:postgresql://db-server:5433/apvenda-dbname
     username: apvenda-dbuser
-    password: ***REMOVED***
+    password: ${VENDA_DB_PASSWORD:dev-local}
     driver-class-name: org.postgresql.Driver
 
   jpa:
