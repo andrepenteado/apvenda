@@ -9,10 +9,10 @@ import { provideRouter } from '@angular/router';
 import "zone.js";
 import { routes } from './app.routes';
 import { provideAnimations } from '@angular/platform-browser/animations';
-import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
+import { provideHttpClient, withInterceptors, withInterceptorsFromDi } from '@angular/common/http';
 import { ToastrModule } from 'ngx-toastr';
 import { INIT_CONFIG, InitConfig } from './config/init-config.token';
-import { PARAMS, provideApcoreHttpInterceptors } from '@andre.penteado/ngx-apcore';
+import { PARAMS, apcoreInterceptors } from '@andre.penteado/ngx-apcore';
 import { DESCRICAO, LOGOTIPO, MODULO, PREFIXO_PERFIL_SISTEMA } from './config/layout';
 import { menu } from './config/menu';
 import localePT from '@angular/common/locales/pt';
@@ -29,7 +29,7 @@ export const appConfig: ApplicationConfig = {
     provideZoneChangeDetection({eventCoalescing: true}),
     provideAnimations(),
     provideHttpClient(withInterceptorsFromDi()),
-    provideApcoreHttpInterceptors(),
+    provideHttpClient(withInterceptors(apcoreInterceptors)),
     importProvidersFrom(
       ToastrModule.forRoot()
     ),
