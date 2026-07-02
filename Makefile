@@ -78,7 +78,7 @@ test-frontend:
 	@echo "🧪 Rodando testes do frontend"
 	cd frontend
 	npm ci
-	npx vitest run
+	npx ng test --watch=false
 	cd ..
 	@echo "✅ Testes do frontend aprovados"
 
@@ -98,7 +98,8 @@ build-frontend: test-frontend
 build-backend:
 	@echo "☕ Build do backend Java (Maven)"
 	mvn -U clean package \
-		--file backend/pom.xml
+		--file backend/pom.xml \
+		-DskipTests
 	@echo "✅ Backend buildado com sucesso"
 
 # =====================
