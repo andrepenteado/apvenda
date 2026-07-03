@@ -1,0 +1,22 @@
+crud: cliente
+metadados: .cruds/cliente.yaml
+checksumNormalizado: "sha256:e9514e93329422eef87be79752493cc8afff33ea306c92dc5fc72c312fc5fbdc"
+executadoEm: "2026-07-02T21:18:12-03:00"
+status: criado
+arquivos:
+  - backend/src/main/resources/db/changelog/versions/1.0.xml
+  - backend/src/main/java/com/github/andrepenteado/venda/domain/entities/Cliente.java
+  - backend/src/main/java/com/github/andrepenteado/venda/domain/filter/ClienteFilter.java
+  - backend/src/main/java/com/github/andrepenteado/venda/domain/repositories/ClienteRepository.java
+  - backend/src/main/java/com/github/andrepenteado/venda/services/ClienteService.java
+  - backend/src/main/java/com/github/andrepenteado/venda/resources/ClienteResource.java
+  - frontend/src/app/config/api.ts
+  - frontend/src/app/config/routes.ts
+  - frontend/src/app/config/menu.ts
+  - frontend/src/app/domain/entities/cliente.ts
+  - frontend/src/app/services/cliente.service.ts
+  - frontend/src/app/pages/cliente/cliente.routes.ts
+  - frontend/src/app/pages/cliente/pesquisar/pesquisar.componente.ts
+  - frontend/src/app/pages/cliente/pesquisar/pesquisar.componente.html
+  - frontend/src/app/pages/cliente/cadastro/cadastro.componente.ts
+  - frontend/src/app/pages/cliente/cadastro/cadastro.componente.html

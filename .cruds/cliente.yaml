@@ -1,0 +1,62 @@
+crud:
+  nome: cliente
+
+autor: André Penteado
+
+projeto:
+  nome: venda
+  perfis:
+    - VendaApplication.PERFIL_CAIXA:CAIXA
+
+tabela:
+  nome: cliente
+  label: Cliente
+  plural: Clientes
+  campos:
+    - nome: id
+      tipo: long
+      pk: true
+      autoincremento: true
+      exibe-grid: true
+      colunas-layout: 0
+
+    - nome: nome
+      tipo: string
+      label: Nome
+      obrigatorio: true
+      unique: false
+      indice: true
+      pesquisavel: contem
+      colunas-layout: 8
+      exibe-grid: true
+
+    - nome: cpf
+      tipo: long
+      label: CPF
+      mask: 000.000.000-00
+      obrigatorio: true
+      unique: true
+      indice: true
+      pesquisavel: exato
+      colunas-layout: 4*
+      exibe-grid: true
+
+    - nome: telefone
+      tipo: string
+      label: Telefone
+      mask: (00) 00000-0000
+      obrigatorio: false
+      unique: false
+      indice: false
+      pesquisavel: false
+      colunas-layout: 6
+      exibe-grid: true
+
+    - nome: whatsapp
+      tipo: boolean
+      label: Whatsapp?
+      obrigatorio: false
+      unique: false
+      indice: false
+      pesquisavel: false
+      colunas-layout: 6*
