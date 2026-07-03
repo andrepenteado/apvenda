@@ -1,6 +1,6 @@
 /*
  * Autor: André Penteado
- * Criado em: 02/07/2026 -03
+ * Criado em: 03/07/2026 -03
  * Observação: arquivo criado com ajuda da IA.
  */
 package com.github.andrepenteado.venda.domain.dto;
@@ -9,26 +9,25 @@ import com.github.andrepenteado.venda.domain.enums.FormaPagamento;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.List;
 
 /**
- * Venda gravada, devolvida ao PDV (usada, por exemplo, na impressão do cupom).
+ * Linha da pesquisa de vendas.
  *
  * @param id identificador da venda.
  * @param dataHora data e hora da venda.
- * @param total total da venda.
- * @param cliente nome do cliente vinculado; nulo quando consumidor.
- * @param itens itens da venda.
+ * @param nomeCliente nome do cliente vinculado; nulo quando consumidor.
+ * @param cpfCliente CPF do cliente vinculado; nulo quando consumidor.
  * @param formaPagamento forma de pagamento da venda.
+ * @param total total da venda.
  * @param valorPago valor líquido pago (total com juros/desconto aplicados).
  */
-public record VendaResponse(
+public record VendaPesquisaResponse(
     Long id,
     LocalDateTime dataHora,
-    BigDecimal total,
-    String cliente,
-    List<ItemConsolidado> itens,
+    String nomeCliente,
+    Long cpfCliente,
     FormaPagamento formaPagamento,
+    BigDecimal total,
     BigDecimal valorPago
 ) {
 }

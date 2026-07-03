@@ -16,18 +16,12 @@ export interface ItemVendaRequest {
   quantidade: number;
 }
 
-export interface ParcelaRequest {
-  formaPagamento: FormaPagamento;
-  dataVencimento: string;
-  valorPago: number | null;
-}
-
 export interface VendaRequest {
   itens: ItemVendaRequest[];
   cliente?: number | null;
   juros?: number;
   desconto?: number;
-  parcelas?: ParcelaRequest[];
+  formaPagamento?: FormaPagamento;
 }
 
 export interface ItemConsolidado {
@@ -43,22 +37,38 @@ export interface VendaConsolidada {
   total: number;
 }
 
-export interface ReceberResponse {
-  parcela: number;
-  dataVencimento: string;
-  dataPagamento: string | null;
-  formaPagamento: FormaPagamento;
-  valorAReceber: number;
-  valorPago: number | null;
-}
-
 export interface VendaResponse {
   id: number;
   dataHora: string;
   total: number;
   cliente: string | null;
   itens: ItemConsolidado[];
-  recebimentos: ReceberResponse[];
+  formaPagamento: FormaPagamento;
+  valorPago: number;
+}
+
+export interface VendaFiltro {
+
+  idVenda?: string;
+
+  dataInicio?: string;
+
+  dataFinal?: string;
+
+  cpfCliente?: string;
+
+  consumidor?: boolean;
+
+}
+
+export interface VendaPesquisa {
+  id: number;
+  dataHora: string;
+  nomeCliente: string | null;
+  cpfCliente: number | null;
+  formaPagamento: FormaPagamento | null;
+  total: number;
+  valorPago: number | null;
 }
 
 export interface VendaDia {
@@ -90,9 +100,6 @@ export interface DashboardResponse {
   totalMes: number;
   quantidadeMes: number;
   ticketMedioMes: number;
-  receberAberto: number;
-  receberVencido: number;
-  recebidoMes: number;
   vendasPorDia: VendaDia[];
   topProdutos: TopProduto[];
   formasPagamento: FormaPagamentoTotal[];
@@ -118,6 +125,40 @@ export class VendaService {
 
   finalizar(request: VendaRequest): Observable<VendaResponse> {
     return this.http.post<VendaResponse>(`${this.initConfig.urlBackend}${API_VENDAS}`, request);
+  }
+
+  listar(): Observable<VendaPesquisa[]> {
+    return this.http.get<VendaPesquisa[]>(`${this.initConfig.urlBackend}${API_VENDAS}`);
+  }
+
+  pesquisar(filtro: VendaFiltro): Observable<VendaPesquisa[]> {
+    let params = new HttpParams();
+
+    if (filtro.idVenda != null && String(filtro.idVenda).trim() !== '') {
+      params = params.set('idVenda', String(filtro.idVenda).trim());
+    }
+
+    if (filtro.dataInicio != null && filtro.dataInicio !== '') {
+      params = params.set('dataInicio', filtro.dataInicio);
+    }
+
+    if (filtro.dataFinal != null && filtro.dataFinal !== '') {
+      params = params.set('dataFinal', filtro.dataFinal);
+    }
+
+    if (filtro.cpfCliente != null && filtro.cpfCliente.trim() !== '') {
+      params = params.set('cpfCliente', filtro.cpfCliente.trim());
+    }
+
+    if (filtro.consumidor === true) {
+      params = params.set('consumidor', 'true');
+    }
+
+    return this.http.get<VendaPesquisa[]>(`${this.initConfig.urlBackend}${API_VENDAS}/pesquisar`, { params });
+  }
+
+  estornar(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.initConfig.urlBackend}${API_VENDAS}/${id}`);
   }
 
   dashboard(): Observable<DashboardResponse> {

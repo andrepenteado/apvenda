@@ -1,0 +1,200 @@
+<ngx-ui-loader
+  loaderId="venda-pesquisar"
+  fgsType="three-bounce"
+  fgsColor="#0d6efd"
+  overlayColor="rgba(255, 255, 255, 0.82)"
+  pbColor="#0d6efd"
+  [hasProgressBar]="true">
+</ngx-ui-loader>
+
+<nav aria-label="breadcrumb" class="mb-3">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item">
+      <a routerLink="/pagina-inicial">
+        <i class="fa-solid fa-house me-1"></i>
+        Início
+      </a>
+    </li>
+    <li class="breadcrumb-item active" aria-current="page">Vendas</li>
+  </ol>
+</nav>
+
+<section class="container py-3">
+  <section class="row g-3 align-items-start mb-4">
+    <div class="col">
+      <div class="text-uppercase small text-secondary fw-semibold mb-1">
+        <i class="fa-solid fa-table-list me-1"></i>
+        Pesquisar
+      </div>
+      <h1 class="h3 fw-bold mb-1">Vendas</h1>
+      <p class="text-secondary mb-0">Consulte as vendas registradas no PDV e realize estornos.</p>
+    </div>
+  </section>
+
+  <section class="row g-3 mb-4 d-none d-md-flex">
+    <div class="col-md-4">
+      <div class="card h-100">
+        <div class="card-body">
+          <div class="text-secondary small">Vendas listadas</div>
+          <div class="fs-4 fw-semibold">{{ vendas.length }}</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card h-100">
+        <div class="card-body">
+          <div class="text-secondary small">Valor total</div>
+          <div class="fs-4 fw-semibold">{{ valorTotalListado | number:'1.2-2' }}</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card h-100">
+        <div class="card-body">
+          <div class="text-secondary small">Valor pago</div>
+          <div class="fs-4 fw-semibold">{{ valorPagoListado | number:'1.2-2' }}</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="card">
+    <div class="card-header d-flex align-items-center justify-content-start">
+      <button
+        type="button"
+        class="btn btn-outline-secondary btn-sm"
+        data-bs-toggle="collapse"
+        data-bs-target="#venda-filtros"
+        aria-expanded="false"
+        aria-controls="venda-filtros">
+        <i class="fa-solid fa-filter me-1"></i>
+        Filtrar Pesquisa
+      </button>
+    </div>
+
+    <div id="venda-filtros" class="collapse filters-collapse">
+      <div class="card-body border-bottom">
+        <form class="row g-2 align-items-center" (ngSubmit)="pesquisar()">
+          <div class="col-6 col-md">
+            <input
+              id="filtro-id-venda"
+              type="number"
+              min="1"
+              name="idVenda"
+              class="form-control"
+              placeholder="Nº da venda"
+              aria-label="Nº da venda"
+              [(ngModel)]="filtro.idVenda">
+          </div>
+          <div class="col-6 col-md">
+            <input
+              id="filtro-data-inicio"
+              type="date"
+              name="dataInicio"
+              class="form-control"
+              title="Data início da venda"
+              aria-label="Data início da venda"
+              [(ngModel)]="filtro.dataInicio">
+          </div>
+          <div class="col-6 col-md">
+            <input
+              id="filtro-data-final"
+              type="date"
+              name="dataFinal"
+              class="form-control"
+              title="Data final da venda"
+              aria-label="Data final da venda"
+              [(ngModel)]="filtro.dataFinal">
+          </div>
+          <div class="col-12 col-md">
+            <input
+              id="filtro-cpf-cliente"
+              type="text"
+              name="cpfCliente"
+              class="form-control"
+              mask="000.000.000-00"
+              placeholder="CPF do cliente"
+              aria-label="CPF do cliente"
+              [(ngModel)]="filtro.cpfCliente">
+          </div>
+          <div class="col-6 col-md-auto">
+            <div class="form-check form-switch mb-0">
+              <input
+                id="filtro-consumidor"
+                type="checkbox"
+                name="consumidor"
+                class="form-check-input"
+                role="switch"
+                title="Somente consumidor (sem cliente vinculado)"
+                aria-label="Somente consumidor (sem cliente vinculado)"
+                [(ngModel)]="filtro.consumidor">
+              <label class="form-check-label text-secondary small" for="filtro-consumidor">Consumidor</label>
+            </div>
+          </div>
+          <div class="col-3 col-md-auto">
+            <button type="submit" class="btn btn-primary w-100" title="Pesquisar" aria-label="Pesquisar">
+              <i class="fa-solid fa-magnifying-glass"></i>
+            </button>
+          </div>
+          <div class="col-3 col-md-auto">
+            <button type="button" class="btn btn-outline-secondary w-100" title="Limpar filtros" aria-label="Limpar filtros" (click)="limparFiltros()">
+              <i class="fa-solid fa-eraser"></i>
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <div class="card-body">
+      @if (exibirTabela) {
+      <div class="table-responsive">
+        <table id="datatables-pesquisar-venda" class="table table-striped table-hover align-middle w-100">
+          <thead>
+            <tr>
+              <th>Ação</th>
+              <th>ID</th>
+              <th>Data</th>
+              <th>Cliente</th>
+              <th>CPF</th>
+              <th>Forma de Pagamento</th>
+              <th>Total</th>
+              <th>Valor Pago</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (venda of vendas; track venda.id) {
+            <tr>
+              <td>
+                <button
+                  type="button"
+                  class="btn btn-outline-danger btn-sm"
+                  title="Estornar venda"
+                  [attr.aria-label]="'Estornar venda #' + venda.id"
+                  (click)="estornar(venda)">
+                  <i class="fa-solid fa-rotate-left"></i>
+                </button>
+              </td>
+              <td>{{ venda.id }}</td>
+              <td>{{ venda.dataHora | date:'dd/MM/yyyy HH:mm' }}</td>
+              <td class="record-cell d-flex align-items-center">
+                <span class="text-primary me-2">
+                  <i class="fa-solid fa-file-invoice-dollar"></i>
+                </span>
+                <div>
+                  <div class="record-main fw-semibold">{{ venda.nomeCliente || 'Consumidor' }}</div>
+                  <div class="record-sub text-secondary small">Venda #{{ venda.id }}</div>
+                </div>
+              </td>
+              <td>{{ formatarCpf(venda.cpfCliente) }}</td>
+              <td>{{ formaPagamentoLabel(venda.formaPagamento) }}</td>
+              <td>{{ venda.total | number:'1.2-2' }}</td>
+              <td>{{ venda.valorPago != null ? (venda.valorPago | number:'1.2-2') : '-' }}</td>
+            </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+      }
+    </div>
+  </section>
+</section>

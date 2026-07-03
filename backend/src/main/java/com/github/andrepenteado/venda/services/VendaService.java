@@ -10,9 +10,8 @@ import com.github.andrepenteado.venda.VendaApplication;
 import com.github.andrepenteado.venda.domain.dto.DashboardResponse;
 import com.github.andrepenteado.venda.domain.dto.ItemConsolidado;
 import com.github.andrepenteado.venda.domain.dto.ItemVendaRequest;
-import com.github.andrepenteado.venda.domain.dto.ParcelaRequest;
-import com.github.andrepenteado.venda.domain.dto.ReceberResponse;
 import com.github.andrepenteado.venda.domain.dto.VendaConsolidada;
+import com.github.andrepenteado.venda.domain.dto.VendaPesquisaResponse;
 import com.github.andrepenteado.venda.domain.dto.VendaRequest;
 import com.github.andrepenteado.venda.domain.dto.VendaResponse;
 import com.github.andrepenteado.venda.domain.entities.Cliente;
@@ -21,6 +20,7 @@ import com.github.andrepenteado.venda.domain.entities.Produto;
 import com.github.andrepenteado.venda.domain.entities.Receber;
 import com.github.andrepenteado.venda.domain.entities.Venda;
 import com.github.andrepenteado.venda.domain.enums.FormaPagamento;
+import com.github.andrepenteado.venda.domain.filter.VendaFilter;
 import com.github.andrepenteado.venda.domain.repositories.ClienteRepository;
 import com.github.andrepenteado.venda.domain.repositories.ItemVendaRepository;
 import com.github.andrepenteado.venda.domain.repositories.ProdutoRepository;
@@ -45,6 +45,7 @@ import java.util.Map;
 import org.springframework.data.domain.PageRequest;
 
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
+import static org.springframework.http.HttpStatus.NOT_FOUND;
 
 /**
  * Serviço de regras de negócio de Venda (PDV).
@@ -54,7 +55,6 @@ public class VendaService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(VendaService.class);
 
-    private static final int MAX_PARCELAS = 12;
     private static final BigDecimal CEM = BigDecimal.valueOf(100);
 
     private final VendaRepository repository;
@@ -99,8 +99,8 @@ public class VendaService {
     }
 
     /**
-     * Etapa 2: grava a Venda, os ItemVenda e os registros de Receber (um por
-     * parcela) e baixa o estoque, tudo na mesma transação.
+     * Etapa 2: grava a Venda, os ItemVenda e o registro único de Receber (sempre
+     * pago na data da venda) e baixa o estoque, tudo na mesma transação.
      *
      * @param request itens e dados de pagamento.
      * @return venda gravada.
@@ -111,13 +111,6 @@ public class VendaService {
         LOGGER.info("Finalizando venda no PDV");
 
         VendaConsolidada consolidada = consolidar(request.itens());
-        List<ParcelaRequest> parcelas = request.parcelas();
-        if (parcelas == null || parcelas.isEmpty()) {
-            throw new ResponseStatusException(BAD_REQUEST, "Informe os dados de pagamento");
-        }
-        if (parcelas.size() > MAX_PARCELAS) {
-            throw new ResponseStatusException(BAD_REQUEST, "Número de parcelas deve ser de 1 a " + MAX_PARCELAS);
-        }
 
         LocalDateTime agora = LocalDateTime.now();
         Venda venda = new Venda();
@@ -149,7 +142,7 @@ public class VendaService {
             produto.setEstoqueAtual(atual.subtract(ic.quantidade()));
         }
 
-        gerarParcelas(venda, consolidada.total(), request);
+        gerarReceber(venda, consolidada.total(), request);
 
         Venda salva = repository.save(venda);
         LOGGER.info("Venda #{} gravada com total {}", salva.getId(), salva.getTotal());
@@ -157,9 +150,60 @@ public class VendaService {
     }
 
     /**
-     * Monta o resumo financeiro do dashboard: totais do dia e do mês, contas a
-     * receber, série diária dos últimos 30 dias, produtos e clientes que mais
-     * venderam e distribuição por forma de pagamento.
+     * Pesquisa vendas pelo filtro informado.
+     *
+     * @param filtro filtro de pesquisa.
+     * @return vendas encontradas.
+     */
+    @Transactional(readOnly = true)
+    @Secured(VendaApplication.PERFIL_CAIXA)
+    public List<VendaPesquisaResponse> pesquisar(VendaFilter filtro) {
+        LOGGER.info("Pesquisando vendas");
+        List<VendaPesquisaResponse> vendas = new ArrayList<>();
+        repository.findAll(filtro.toPredicate()).forEach(venda -> vendas.add(toResponse(venda)));
+        return vendas;
+    }
+
+    /**
+     * Lista todas as vendas.
+     *
+     * @return todas as vendas.
+     */
+    @Transactional(readOnly = true)
+    @Secured(VendaApplication.PERFIL_CAIXA)
+    public List<VendaPesquisaResponse> listar() {
+        LOGGER.info("Listando todas as vendas");
+        return repository.findAll().stream().map(this::toResponse).toList();
+    }
+
+    /**
+     * Estorna uma venda: exclui a venda, os itens e o financeiro (Receber) e
+     * devolve as quantidades vendidas ao estoque, na mesma transação.
+     *
+     * @param id identificador da venda.
+     */
+    @Transactional
+    @Secured(VendaApplication.PERFIL_CAIXA)
+    public void estornar(Long id) {
+        LOGGER.info("Estornando venda #{}", id);
+        Venda venda = repository.findById(id)
+            .orElseThrow(() -> new ResponseStatusException(NOT_FOUND, "Venda não encontrada"));
+
+        for (ItemVenda item : venda.getItens()) {
+            Produto produto = item.getProduto();
+            BigDecimal atual = produto.getEstoqueAtual() == null ? BigDecimal.ZERO : produto.getEstoqueAtual();
+            produto.setEstoqueAtual(atual.add(item.getQuantidade()));
+        }
+
+        // O cascade das coleções exclui itens e recebimentos junto com a venda.
+        repository.delete(venda);
+        LOGGER.info("Venda #{} estornada", id);
+    }
+
+    /**
+     * Monta o resumo financeiro do dashboard: totais do dia e do mês, série
+     * diária dos últimos 30 dias, produtos e clientes que mais venderam e
+     * distribuição por forma de pagamento.
      *
      * @return resumo financeiro consolidado.
      */
@@ -216,9 +260,6 @@ public class VendaService {
             totalMes,
             quantidadeMes,
             ticketMedioMes,
-            receberRepository.somarAberto(),
-            receberRepository.somarVencido(hoje),
-            receberRepository.somarRecebidoDesde(primeiroDiaMes),
             List.copyOf(porDia.values()),
             topProdutos,
             formasPagamento,
@@ -261,59 +302,50 @@ public class VendaService {
     }
 
     /**
-     * Gera os registros de Receber a partir das parcelas informadas. O valor a
-     * receber é recalculado dividindo o valor líquido (total + juros% - desconto%)
-     * pelo número de parcelas, com o arredondamento na primeira parcela.
+     * Gera o registro único de Receber da venda, sempre pago na data da venda.
+     * O valor é o líquido: total + juros% - desconto%.
      */
-    private void gerarParcelas(Venda venda, BigDecimal total, VendaRequest request) {
+    private void gerarReceber(Venda venda, BigDecimal total, VendaRequest request) {
+        if (request.formaPagamento() == null) {
+            throw new ResponseStatusException(BAD_REQUEST, "Informe a forma de pagamento");
+        }
+
         int juros = request.juros() == null ? 0 : request.juros();
         int desconto = request.desconto() == null ? 0 : request.desconto();
-        List<ParcelaRequest> parcelas = request.parcelas();
-        int n = parcelas.size();
-
         BigDecimal fator = BigDecimal.valueOf(100L + juros - desconto);
         BigDecimal liquido = total.multiply(fator).divide(CEM, 2, RoundingMode.HALF_UP);
-        BigDecimal base = liquido.divide(BigDecimal.valueOf(n), 2, RoundingMode.DOWN);
-        BigDecimal resto = liquido.subtract(base.multiply(BigDecimal.valueOf(n)));
 
-        for (int i = 0; i < n; i++) {
-            ParcelaRequest pr = parcelas.get(i);
-            if (pr.formaPagamento() == null) {
-                throw new ResponseStatusException(BAD_REQUEST, "Informe a forma de pagamento da parcela " + (i + 1));
-            }
-            if (pr.dataVencimento() == null) {
-                throw new ResponseStatusException(BAD_REQUEST, "Informe a data de vencimento da parcela " + (i + 1));
-            }
-
-            // A diferença de arredondamento vai na primeira parcela.
-            BigDecimal valorAReceber = i == 0 ? base.add(resto) : base;
-
-            Receber receber = new Receber();
-            // parcela 0 = à vista (1 registro); 1..N = parcelado.
-            receber.setParcela(n == 1 ? 0 : i + 1);
-            receber.setFormaPagamento(pr.formaPagamento());
-            receber.setDataVencimento(pr.dataVencimento());
-            receber.setValorAReceber(valorAReceber);
-            receber.setValorPago(pr.valorPago());
-            // data_pagamento derivada: preenchida (= vencimento) somente se houver valor pago.
-            receber.setDataPagamento(pr.valorPago() != null ? pr.dataVencimento() : null);
-            venda.addReceber(receber);
-        }
+        LocalDate hoje = LocalDate.now();
+        Receber receber = new Receber();
+        // parcela 0 = à vista: a venda gera um único recebimento, já quitado.
+        receber.setParcela(0);
+        receber.setFormaPagamento(request.formaPagamento());
+        receber.setDataVencimento(hoje);
+        receber.setDataPagamento(hoje);
+        receber.setValorAReceber(liquido);
+        receber.setValorPago(liquido);
+        venda.addReceber(receber);
     }
 
     private VendaResponse montarResposta(Venda venda, List<ItemConsolidado> itens) {
-        List<ReceberResponse> recebimentos = venda.getRecebimentos().stream()
-            .map(r -> new ReceberResponse(
-                r.getParcela(),
-                r.getDataVencimento(),
-                r.getDataPagamento(),
-                r.getFormaPagamento(),
-                r.getValorAReceber(),
-                r.getValorPago()
-            ))
-            .toList();
+        Receber receber = venda.getRecebimentos().getFirst();
         String cliente = venda.getCliente() != null ? venda.getCliente().getNome() : null;
-        return new VendaResponse(venda.getId(), venda.getDataHora(), venda.getTotal(), cliente, itens, recebimentos);
+        return new VendaResponse(venda.getId(), venda.getDataHora(), venda.getTotal(), cliente, itens,
+            receber.getFormaPagamento(), receber.getValorPago());
+    }
+
+    private VendaPesquisaResponse toResponse(Venda venda) {
+        Receber receber = venda.getRecebimentos().isEmpty() ? null : venda.getRecebimentos().getFirst();
+        Cliente cliente = venda.getCliente();
+        return new VendaPesquisaResponse(
+            venda.getId(),
+            venda.getDataHora(),
+            cliente != null ? cliente.getNome() : null,
+            cliente != null ? cliente.getCpf() : null,
+            receber != null ? receber.getFormaPagamento() : null,
+            venda.getTotal(),
+            receber != null ? receber.getValorPago() : null
+        );
     }
 
 }

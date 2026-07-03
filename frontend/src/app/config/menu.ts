@@ -64,10 +64,10 @@ export const menu: Menu[] = [
   },
 
   {
-    id: "receber",
-    texto: "Contas a Receber",
-    icone: "hand-holding-dollar",
-    path: "/receber",
+    id: "venda",
+    texto: "Vendas",
+    icone: "file-invoice-dollar",
+    path: "/vendas",
     roles: [`${PREFIXO_PERFIL_SISTEMA}CAIXA`],
     subMenus: [
     ]

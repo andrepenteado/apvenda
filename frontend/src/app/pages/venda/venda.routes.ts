@@ -5,7 +5,7 @@
  */
 import { Routes } from '@angular/router';
 
-export const RECEBER_ROUTES: Routes = [
+export const VENDA_ROUTES: Routes = [
 
   {
     path: '',

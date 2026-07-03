@@ -8,4 +8,3 @@ export const API_CATEGORIAS: string = '/categorias';
 export const API_PRODUTOS: string = '/produtos';
 export const API_VENDAS: string = '/vendas';
 export const API_CLIENTES: string = '/clientes';
-export const API_RECEBER: string = '/receber';

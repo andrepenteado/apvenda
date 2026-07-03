@@ -19,9 +19,6 @@ import java.util.List;
  * @param totalMes valor total vendido no mês corrente.
  * @param quantidadeMes quantidade de vendas do mês corrente.
  * @param ticketMedioMes valor médio por venda no mês corrente.
- * @param receberAberto total de parcelas ainda não pagas.
- * @param receberVencido total de parcelas não pagas já vencidas.
- * @param recebidoMes total efetivamente recebido no mês corrente.
  * @param vendasPorDia série diária de vendas dos últimos 30 dias.
  * @param topProdutos produtos mais vendidos do mês corrente.
  * @param formasPagamento distribuição do faturamento do mês por forma de pagamento.
@@ -33,9 +30,6 @@ public record DashboardResponse(
     BigDecimal totalMes,
     long quantidadeMes,
     BigDecimal ticketMedioMes,
-    BigDecimal receberAberto,
-    BigDecimal receberVencido,
-    BigDecimal recebidoMes,
     List<VendaDia> vendasPorDia,
     List<TopProduto> topProdutos,
     List<FormaPagamentoTotal> formasPagamento,

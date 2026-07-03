@@ -5,7 +5,7 @@
       <option value="$PROJECT_DIR$/.helm/backend.env" />
     </option>
     <option name="FRAME_DEACTIVATION_UPDATE_POLICY" value="UpdateClassesAndResources" />
-    <module name="venda" />
+    <module name="backend" />
     <selectedOptions>
       <option name="environmentVariables" />
     </selectedOptions>

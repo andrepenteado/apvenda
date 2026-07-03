@@ -27,7 +27,7 @@
         Resumo financeiro
       </div>
       <h1 class="h3 fw-bold mb-1">Dashboard</h1>
-      <p class="text-body-secondary mb-0">Acompanhe as vendas, o faturamento e as contas a receber.</p>
+      <p class="text-body-secondary mb-0">Acompanhe as vendas e o faturamento.</p>
     </div>
   </section>
 
@@ -35,7 +35,7 @@
 
   <!-- KPIs -->
   <section class="row g-3 mb-4">
-    <div class="col-6 col-xl-3">
+    <div class="col-6 col-xl-4">
       <div class="card h-100">
         <div class="card-body">
           <div class="small text-body-secondary mb-1">
@@ -48,7 +48,7 @@
       </div>
     </div>
 
-    <div class="col-6 col-xl-3">
+    <div class="col-6 col-xl-4">
       <div class="card h-100">
         <div class="card-body">
           <div class="small text-body-secondary mb-1">
@@ -61,7 +61,7 @@
       </div>
     </div>
 
-    <div class="col-6 col-xl-3">
+    <div class="col-6 col-xl-4">
       <div class="card h-100">
         <div class="card-body">
           <div class="small text-body-secondary mb-1">
@@ -70,28 +70,6 @@
           </div>
           <div class="fs-3 fw-semibold">{{ formatarMoeda(dados.ticketMedioMes) }}</div>
           <div class="small text-body-secondary">por venda</div>
-        </div>
-      </div>
-    </div>
-
-    <div class="col-6 col-xl-3">
-      <div class="card h-100">
-        <div class="card-body">
-          <div class="small text-body-secondary mb-1">
-            <i class="fa-solid fa-hand-holding-dollar me-1"></i>
-            A receber
-          </div>
-          <div class="fs-3 fw-semibold">{{ formatarMoeda(dados.receberAberto) }}</div>
-          <div class="small">
-            @if (dados.receberVencido > 0) {
-            <span class="text-danger fw-semibold">
-              <i class="fa-solid fa-triangle-exclamation me-1"></i>{{ formatarMoeda(dados.receberVencido) }} vencido
-            </span>
-            } @else {
-            <span class="text-body-secondary">nada vencido</span>
-            }
-            <span class="text-body-secondary"> · recebido no mês {{ formatarMoeda(dados.recebidoMes) }}</span>
-          </div>
         </div>
       </div>
     </div>

@@ -156,27 +156,28 @@ Registrar uma venda de forma ágil, operada **inteiramente por teclado, sem nece
 - `F2`: foco no campo de pesquisa de produto.
 - `F3`: foco no campo quantidade, quando habilitado.
 - `Del`: entra no modo de navegação dos itens do carrinho; `Seta acima` / `Seta abaixo` selecionam o item e `Enter` confirma a exclusão.
-- `F10`: **realizar pagamento** (consolida a venda e abre o modal de pagamento).
+- `F10`: **finalizar venda** (consolida a venda no backend e habilita o formulário de finalização).
+- `Ctrl + F11`: confirma a finalização da venda (no modo finalização).
+- `Esc`: volta do modo finalização para a montagem da venda (mantém o carrinho).
 - `Ctrl + C`: cancela a venda a qualquer momento (o cancelamento exige confirmação, então não copia nem cancela por engano).
 - `F4`: imprime o cupom (ver "Impressão do cupom").
 - Exclusão de item e cancelamento da venda exibem popup de confirmação; no cancelamento, a opção padrão é **Não** (evita cancelar por engano ao pressionar `Enter`).
 
-No modal de pagamento há os botões `[Esc] Voltar à venda` e `[Ctrl + F11] Finalizar venda`. No modal de impressão, `[Ctrl + P]` imprime e `[Esc]` fecha.
+No modal de impressão, `[Ctrl + P]` imprime e `[Esc]` fecha.
 
 ### Pagamento e finalização
 
-O pagamento acontece em duas chamadas ao backend, através de um modal:
+A finalização acontece em um **formulário fixo abaixo da lista de itens** (não há modal de pagamento), com alternância de modo entre montagem e finalização:
 
-1. **Realizar pagamento** (`F10`): o frontend envia os itens do carrinho; o backend faz a somatória (totais) e valida, devolvendo o total consolidado. Em seguida abre-se um **modal de pagamento** com os campos:
-   - **Valor total**: readonly (vem consolidado do backend);
-   - **Parcelas**: combo de à vista até 12x;
-   - **Juros** e **Desconto**: inteiros, em **percentual** (aplicados sobre o total);
-   - **Forma de pagamento**;
-   - **Data da 1ª parcela**: default = data corrente (base do cronograma de vencimentos).
-   - Quando há parcelamento, exibe-se a **lista de parcelas** (uma linha por parcela), com: forma de pagamento (por padrão a selecionada acima), valor da parcela (readonly, calculado com juros/desconto), data de vencimento (editável, por padrão a data da 1ª parcela somada de 30 dias por parcela) e valor pago (editável, por padrão igual ao valor da parcela; em branco = parcela em aberto).
-2. **Finalizar venda** (`Ctrl + F11`, botão do modal): o frontend envia itens, juros, desconto e a lista de parcelas; o backend grava a `Venda`, os `ItemVenda` e um `Receber` por parcela (com a forma de pagamento e o valor pago de cada linha) e baixa o estoque. Ao concluir, abre o modal de impressão com o cabeçalho `VENDA #NNN` (id gerado).
+- Enquanto se adicionam produtos, os campos do formulário de finalização ficam **readonly**; ao entrar no modo finalização, os campos de produto/quantidade ficam **readonly** e o formulário é habilitado.
+- O formulário tem os campos: **Forma de pagamento**, **Juros (%)** e **Desconto (%)** (inteiros, em percentual, aplicados sobre o total) e **Valor pago** (readonly, calculado: `total` + `total` × `juros`% − `total` × `desconto`%).
 
-O botão `[Esc] Voltar à venda` fecha o modal e retorna à montagem da venda.
+O fluxo usa duas chamadas ao backend:
+
+1. **Finalizar venda** (`F10`): o frontend envia os itens do carrinho; o backend faz a somatória (totais) e valida, devolvendo o total consolidado. O formulário de finalização é habilitado com o foco na forma de pagamento.
+2. **Confirmar** (`Ctrl + F11`, botão do formulário): o frontend envia itens, juros, desconto e forma de pagamento; o backend grava a `Venda`, os `ItemVenda` e **um único `Receber` já quitado** e baixa o estoque. Ao concluir, abre o modal de impressão com o cabeçalho `VENDA #NNN` (id gerado).
+
+O botão `[Esc] Voltar aos itens` retorna à montagem da venda.
 
 ### Exibição do carrinho (estilo cupom)
 
@@ -205,14 +206,19 @@ A lista de itens fica abaixo da pesquisa, com aparência de cupom fiscal impress
 
 ### Dados e escopo
 
-- Serão criadas (sem YAML de CRUD) as tabelas `Venda` (`id`, `data_hora`, `total` e auditoria), `ItemVenda` (`id`, `fk_venda`, `fk_produto`, `quantidade`, `valor_unitario`, `valor_total`) e `Receber` (`id`, `fk_venda`, `parcela`, `data_vencimento`, `data_pagamento`, `forma_pagamento`, `valor_a_receber`, `valor_pago`), vinculada à `Venda` com um registro por parcela. Em `Receber`, `parcela` = 0 indica venda à vista e 1..12 o número da parcela.
+- As tabelas (sem YAML de CRUD) são `Venda` (`id`, `data_hora`, `total` e auditoria), `ItemVenda` (`id`, `fk_venda`, `fk_produto`, `quantidade`, `valor_unitario`, `valor_total`) e `Receber` (`id`, `fk_venda`, `parcela`, `data_vencimento`, `data_pagamento`, `forma_pagamento`, `valor_a_receber`, `valor_pago`). A modelagem de `Receber` comporta parcelamento, mas a regra atual é simplificada: **1 venda = 1 registro de `Receber`, sempre pago** (`parcela` fixo em 0 = à vista).
 - `quantidade` é decimal, para permitir fracionar (ex.: produtos em metro); lançar o mesmo produto de novo soma a quantidade na linha existente.
 - `valor_unitario` guarda o preço no momento da venda; o `total` é recalculado no backend a partir dos itens.
-- O modal de pagamento informa `parcelas` (de à vista até 12x), `juros` e `desconto` (inteiros, em **percentual**) e, por parcela, a forma de pagamento e o valor pago. O valor líquido da venda é `total` + `total` × `juros`% − `total` × `desconto`%, dividido em N parcelas, gerando **um registro de `Receber` por parcela**. Juros e desconto ficam embutidos nos valores e não são colunas de `Receber`.
-- Em cada parcela: `valor_a_receber` = valor líquido / N com no máximo 2 casas decimais. Se a divisão não for exata, a diferença de arredondamento (tipicamente R$ 0,01) é somada à **primeira** parcela, para que a soma feche com o total.
-- `data_vencimento` é o que se digita na tela (editável por parcela na lista). Default: na venda à vista (`parcela` = 0), a **data da 1ª parcela** (informada no modal, default = data corrente); no parcelamento (`parcela` = 1..N), a data da 1ª parcela + (`parcela` − 1) × 30 dias.
-- `data_pagamento` não é digitado: se o `valor_pago` da parcela for preenchido (parcela paga), recebe a **mesma data do `data_vencimento`**; se o `valor_pago` ficar em branco (parcela em aberto), fica **nulo**.
-- `forma_pagamento` (por parcela) recebe por padrão a forma selecionada no topo do modal, podendo ser ajustada por linha. `valor_pago` (por parcela) vem por padrão igual ao `valor_a_receber`; se o operador deixar em branco, a parcela fica **em aberto** (nulo).
+- O formulário de finalização informa `juros`, `desconto` (inteiros, em **percentual**) e a `forma_pagamento`. O valor líquido da venda é `total` + `total` × `juros`% − `total` × `desconto`% e vira o único registro de `Receber`, com `valor_a_receber` = `valor_pago` = líquido. Juros e desconto ficam embutidos no valor e não são colunas de `Receber`.
+- `data_vencimento` e `data_pagamento` recebem a **data da venda** (registro já quitado).
 - `forma_pagamento` é o enum `FormaPagamento` (`DINHEIRO`, `PIX`, `CARTAO_DEBITO`, `CARTAO_CREDITO`).
 - Ao finalizar, a venda baixa o `estoque_atual` de cada produto na mesma transação. A baixa fica pronta, mas nesta fase não há validação de estoque negativo ou zero.
 - O fluxo de caixa não será implementado nesta fase.
+
+## Tela Vendas
+
+A tela **Vendas** (menu `Vendas`, rota `/vendas`) consulta as vendas registradas no PDV, baseada na tabela `venda`. Não é um CRUD gerado por YAML.
+
+- **Filtros**: número da venda, período (data da venda), CPF do cliente e consumidor (somente vendas sem cliente vinculado). A pesquisa exige ao menos um filtro; limpar os filtros lista todas as vendas.
+- **Grid**: a primeira coluna é a de **ação**, com o botão de **estorno**; as demais exibem id, data/hora, cliente (ou "Consumidor"), CPF, forma de pagamento, total e valor pago.
+- **Estorno**: mediante confirmação (opção padrão **Não**), exclui a `Venda`, os `ItemVenda` e o `Receber` e **devolve as quantidades vendidas ao estoque**, tudo na mesma transação.

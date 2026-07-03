@@ -15,7 +15,7 @@ import { Produto } from '../../domain/entities/produto';
 import { FormaPagamento, FormaPagamentoLabels } from '../../domain/enums/forma-pagamento';
 import { Unidade, UnidadeLabels } from '../../domain/enums/unidade';
 import { ClienteService } from '../../services/cliente.service';
-import { ParcelaRequest, VendaRequest, VendaResponse, VendaService } from '../../services/venda.service';
+import { VendaRequest, VendaResponse, VendaService } from '../../services/venda.service';
 
 interface ItemCarrinho {
   produtoId: number;
@@ -25,13 +25,6 @@ interface ItemCarrinho {
   quantidade: number;
   valorUnitario: number;
   valorTotal: number;
-}
-
-interface LinhaParcela {
-  formaPagamento: FormaPagamento;
-  dataVencimento: string;
-  valorParcela: number;
-  valorPago: number | null;
 }
 
 @Component({
@@ -62,20 +55,16 @@ export class PdvComponente implements OnInit, OnDestroy {
   readonly pesquisaCliente$ = new Subject<string>();
   buscandoCliente = false;
 
-  pagamentoAberto = false;
+  finalizando = false;
   totalConsolidado = 0;
-  numParcelas = 1;
   juros = 0;
   desconto = 0;
   formaPagamento: FormaPagamento = FormaPagamento.DINHEIRO;
-  dataPrimeiraParcela = this.hojeIso();
-  linhasParcela: LinhaParcela[] = [];
 
   impressaoAberta = false;
   vendaFinalizada: VendaResponse | null = null;
 
   readonly formasPagamento = Object.entries(FormaPagamentoLabels).map(([valor, label]) => ({ valor: valor as FormaPagamento, label }));
-  readonly opcoesParcelas = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
 
   @ViewChild('pesquisaSelect') pesquisaSelect?: NgSelectComponent;
   @ViewChild('inputQtd') inputQtd?: ElementRef<HTMLInputElement>;
@@ -132,7 +121,7 @@ export class PdvComponente implements OnInit, OnDestroy {
     return this.arred2(this.itens.reduce((soma, item) => soma + item.valorTotal, 0));
   }
 
-  get liquido(): number {
+  get valorPago(): number {
     return this.arred2((this.totalConsolidado * (100 + (this.juros || 0) - (this.desconto || 0))) / 100);
   }
 
@@ -147,10 +136,6 @@ export class PdvComponente implements OnInit, OnDestroy {
   fotoSrc(entidade: { foto?: string | null } | null): string {
     const uuid = entidade?.foto;
     return (uuid && this.fotosCache.get(uuid)) || this.semImagem;
-  }
-
-  labelParcelas(n: number): string {
-    return n === 1 ? 'À vista' : `${n}x`;
   }
 
   labelForma(forma: FormaPagamento): string {
@@ -172,7 +157,7 @@ export class PdvComponente implements OnInit, OnDestroy {
   }
 
   adicionarAoCarrinho(): void {
-    if (!this.produtoSelecionado) {
+    if (!this.produtoSelecionado || this.finalizando) {
       return;
     }
     if (!this.quantidade || this.quantidade <= 0) {
@@ -204,6 +189,9 @@ export class PdvComponente implements OnInit, OnDestroy {
   }
 
   abrirModalCliente(): void {
+    if (this.finalizando) {
+      return;
+    }
     this.clienteModel = this.clienteSelecionado;
     this.clientes = this.clienteSelecionado ? [this.clienteSelecionado] : [];
     this.clienteModalAberto = true;
@@ -254,9 +242,9 @@ export class PdvComponente implements OnInit, OnDestroy {
     });
   }
 
-  realizarPagamento(): void {
+  iniciarFinalizacao(): void {
     if (this.itens.length === 0) {
-      this.aviso('Adicione ao menos um produto para receber o pagamento.');
+      this.aviso('Adicione ao menos um produto para finalizar a venda.');
       return;
     }
     const request: VendaRequest = {
@@ -265,66 +253,40 @@ export class PdvComponente implements OnInit, OnDestroy {
     this.service.preparar(request).subscribe({
       next: consolidada => {
         this.totalConsolidado = consolidada.total;
-        this.numParcelas = 1;
         this.juros = 0;
         this.desconto = 0;
         this.formaPagamento = FormaPagamento.DINHEIRO;
-        this.dataPrimeiraParcela = this.hojeIso();
-        this.montarLinhasParcela();
-        this.pagamentoAberto = true;
+        this.finalizando = true;
         setTimeout(() => this.selectForma?.nativeElement.focus(), 100);
       }
     });
   }
 
-  montarLinhasParcela(): void {
-    const n = this.numParcelas;
-    const liq = this.liquido;
-    const base = Math.floor((liq / n) * 100) / 100;
-    const resto = this.arred2(liq - base * n);
-    const linhas: LinhaParcela[] = [];
-    for (let i = 0; i < n; i++) {
-      const valor = i === 0 ? this.arred2(base + resto) : base;
-      linhas.push({
-        formaPagamento: this.formaPagamento,
-        dataVencimento: this.addDiasIso(this.dataPrimeiraParcela, i * 30),
-        valorParcela: valor,
-        valorPago: valor
-      });
-    }
-    this.linhasParcela = linhas;
-  }
-
   finalizarVenda(): void {
-    const parcelas: ParcelaRequest[] = this.linhasParcela.map(linha => ({
-      formaPagamento: linha.formaPagamento,
-      dataVencimento: linha.dataVencimento,
-      valorPago: linha.valorPago === null || linha.valorPago === undefined || (linha.valorPago as unknown) === '' ? null : linha.valorPago
-    }));
     const request: VendaRequest = {
       itens: this.itens.map(item => ({ produto: item.produtoId, quantidade: item.quantidade })),
       cliente: this.clienteSelecionado?.id ?? null,
       juros: this.juros || 0,
       desconto: this.desconto || 0,
-      parcelas
+      formaPagamento: this.formaPagamento
     };
     this.service.finalizar(request).subscribe({
       next: venda => {
         this.vendaFinalizada = venda;
-        this.pagamentoAberto = false;
+        this.finalizando = false;
         this.mensagemService.showMessage(`Venda #${venda.id} finalizada com sucesso.`, 'PDV', DecoracaoMensagem.SUCESSO);
         this.impressaoAberta = true;
       }
     });
   }
 
-  voltarVenda(): void {
-    this.pagamentoAberto = false;
+  voltarAosItens(): void {
+    this.finalizando = false;
     setTimeout(() => this.focarPesquisa(), 0);
   }
 
   cancelarVenda(): void {
-    if (this.itens.length === 0 && !this.pagamentoAberto) {
+    if (this.itens.length === 0 && !this.finalizando) {
       return;
     }
     Swal.fire({
@@ -375,15 +337,13 @@ export class PdvComponente implements OnInit, OnDestroy {
     this.clienteSelecionado = null;
     this.clienteModel = null;
     this.clientes = [];
-    this.pagamentoAberto = false;
+    this.finalizando = false;
     this.impressaoAberta = false;
     this.vendaFinalizada = null;
-    this.numParcelas = 1;
+    this.totalConsolidado = 0;
     this.juros = 0;
     this.desconto = 0;
     this.formaPagamento = FormaPagamento.DINHEIRO;
-    this.dataPrimeiraParcela = this.hojeIso();
-    this.linhasParcela = [];
     setTimeout(() => this.focarPesquisa(), 0);
   }
 
@@ -407,13 +367,16 @@ export class PdvComponente implements OnInit, OnDestroy {
       return;
     }
 
-    if (this.pagamentoAberto) {
+    if (this.finalizando) {
       if (evento.ctrlKey && tecla === 'F11') {
         evento.preventDefault();
         this.finalizarVenda();
       } else if (tecla === 'Escape') {
         evento.preventDefault();
-        this.voltarVenda();
+        this.voltarAosItens();
+      } else if (tecla === 'F4') {
+        evento.preventDefault();
+        this.abrirImpressao();
       }
       return;
     }
@@ -449,7 +412,7 @@ export class PdvComponente implements OnInit, OnDestroy {
     }
     if (tecla === 'F10') {
       evento.preventDefault();
-      this.realizarPagamento();
+      this.iniciarFinalizacao();
       return;
     }
     if (this.modoExclusao) {
@@ -509,16 +472,6 @@ export class PdvComponente implements OnInit, OnDestroy {
 
   private aviso(mensagem: string): void {
     this.mensagemService.showMessage(mensagem, 'PDV', DecoracaoMensagem.ATENCAO);
-  }
-
-  private hojeIso(): string {
-    return new Date().toISOString().slice(0, 10);
-  }
-
-  private addDiasIso(iso: string, dias: number): string {
-    const data = new Date(iso + 'T00:00:00');
-    data.setDate(data.getDate() + dias);
-    return data.toISOString().slice(0, 10);
   }
 
   private arred2(valor: number): number {

@@ -36,8 +36,8 @@ export const DECORATED_ROUTES: Routes = [
   },
 
   {
-    path: "receber",
-    loadChildren: () => import("../pages/receber/receber.routes").then(m => m.RECEBER_ROUTES)
+    path: "vendas",
+    loadChildren: () => import("../pages/venda/venda.routes").then(m => m.VENDA_ROUTES)
   },
 
   {

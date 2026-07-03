@@ -20,6 +20,7 @@
             [items]="produtos"
             [typeahead]="pesquisa$"
             [loading]="buscando"
+            [readonly]="finalizando"
             bindLabel="nome"
             [minTermLength]="1"
             typeToSearchText="Digite o nome ou o código de barras"
@@ -47,7 +48,7 @@
               step="0.001"
               class="form-control form-control-lg text-end"
               [(ngModel)]="quantidade"
-              [disabled]="!produtoSelecionado"
+              [disabled]="!produtoSelecionado || finalizando"
               (keydown.enter)="adicionarAoCarrinho()">
             <span class="input-group-text">{{ unidadeLabel(produtoSelecionado?.unidade) || '—' }}</span>
           </div>
@@ -106,6 +107,52 @@
     }
   </div>
 
+  <!-- Formulário de finalização da venda: readonly enquanto se adicionam produtos. -->
+  <div class="card mb-3 d-print-none" [class.border-primary]="finalizando">
+    <div class="card-body">
+      <div class="fw-semibold mb-2">
+        <i class="fa-solid fa-money-bill-wave me-1"></i>
+        Finalização da venda <span class="text-secondary small">[F10]</span>
+      </div>
+      <div class="row g-2 align-items-end">
+        <div class="col-12 col-lg-4">
+          <label class="form-label fw-semibold mb-1">Forma de pagamento</label>
+          <select #selectForma class="form-select" [(ngModel)]="formaPagamento" [disabled]="!finalizando">
+            @for (forma of formasPagamento; track forma.valor) {
+            <option [ngValue]="forma.valor">{{ forma.label }}</option>
+            }
+          </select>
+        </div>
+        <div class="col-6 col-lg-2">
+          <label class="form-label fw-semibold mb-1">Juros (%)</label>
+          <input type="number" min="0" step="1" class="form-control text-end" [(ngModel)]="juros" [disabled]="!finalizando">
+        </div>
+        <div class="col-6 col-lg-2">
+          <label class="form-label fw-semibold mb-1">Desconto (%)</label>
+          <input type="number" min="0" step="1" class="form-control text-end" [(ngModel)]="desconto" [disabled]="!finalizando">
+        </div>
+        <div class="col-12 col-lg-4">
+          <label class="form-label fw-semibold mb-1">Valor pago</label>
+          <input
+            type="text"
+            class="form-control text-end fw-bold"
+            [value]="finalizando ? (valorPago | number:'1.2-2') : ''"
+            disabled>
+        </div>
+      </div>
+      @if (finalizando) {
+      <div class="d-flex justify-content-end gap-2 mt-3">
+        <button type="button" class="btn btn-outline-secondary" (click)="voltarAosItens()">
+          <i class="fa-solid fa-arrow-left me-1"></i>[Esc] Voltar aos itens
+        </button>
+        <button type="button" class="btn btn-primary" (click)="finalizarVenda()">
+          <i class="fa-solid fa-check me-1"></i>[Ctrl+F11] Finalizar venda
+        </button>
+      </div>
+      }
+    </div>
+  </div>
+
   <!-- Rodapé de atalhos -->
   <div class="text-secondary small border-top pt-2 d-flex flex-wrap gap-3 d-print-none">
     <span><b>[F2]</b> Produto</span>
@@ -113,7 +160,9 @@
     <span><b>[Del]</b> Excluir item</span>
     <span><b>[F4]</b> Imprimir</span>
     <span><b>[F6]</b> Cliente</span>
-    <span><b>[F10]</b> Realizar pagamento</span>
+    <span><b>[F10]</b> Finalizar venda</span>
+    <span><b>[Ctrl+F11]</b> Confirmar</span>
+    <span><b>[Esc]</b> Voltar aos itens</span>
     <span><b>[Ctrl+C]</b> Cancelar venda</span>
   </div>
 </section>
@@ -158,106 +207,6 @@
         }
         <button type="button" class="btn btn-outline-secondary" (click)="fecharModalCliente()">
           <i class="fa-solid fa-x me-1"></i>[Esc] Fechar
-        </button>
-      </div>
-    </div>
-  </div>
-</div>
-<div class="modal-backdrop show"></div>
-}
-
-<!-- Modal de pagamento -->
-@if (pagamentoAberto) {
-<div class="modal d-block" tabindex="-1" role="dialog">
-  <div class="modal-dialog modal-xl modal-dialog-centered">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title"><i class="fa-solid fa-money-bill-wave me-2"></i>Realizar pagamento</h5>
-      </div>
-      <div class="modal-body">
-        <!-- Valor total em destaque, não editável, em linha própria. -->
-        <div class="rounded bg-primary-subtle text-center p-3 mb-4">
-          <div class="small text-uppercase fw-semibold text-body-secondary">Valor total</div>
-          <div class="display-5 fw-bold text-primary">{{ totalConsolidado | number:'1.2-2' }}</div>
-        </div>
-
-        <div class="row g-3">
-          <div class="col-12 col-md-4">
-            <label class="form-label fw-semibold">Forma de pagamento</label>
-            <select #selectForma class="form-select" [(ngModel)]="formaPagamento" (ngModelChange)="montarLinhasParcela()">
-              @for (forma of formasPagamento; track forma.valor) {
-              <option [ngValue]="forma.valor">{{ forma.label }}</option>
-              }
-            </select>
-          </div>
-          <div class="col-6 col-md-4">
-            <label class="form-label fw-semibold">Parcelas</label>
-            <select class="form-select" [(ngModel)]="numParcelas" (ngModelChange)="montarLinhasParcela()">
-              @for (n of opcoesParcelas; track n) {
-              <option [ngValue]="n">{{ labelParcelas(n) }}</option>
-              }
-            </select>
-          </div>
-          <div class="col-6 col-md-4">
-            <label class="form-label fw-semibold">Desconto (%)</label>
-            <input type="number" min="0" step="1" class="form-control text-end" [(ngModel)]="desconto" (ngModelChange)="montarLinhasParcela()">
-          </div>
-          <div class="col-6 col-md-4">
-            <label class="form-label fw-semibold">Juros (%)</label>
-            <input type="number" min="0" step="1" class="form-control text-end" [(ngModel)]="juros" (ngModelChange)="montarLinhasParcela()">
-          </div>
-          <div class="col-6 col-md-4">
-            <label class="form-label fw-semibold">Data da 1ª parcela</label>
-            <input type="date" class="form-control" [(ngModel)]="dataPrimeiraParcela" (ngModelChange)="montarLinhasParcela()">
-          </div>
-        </div>
-
-        @if (numParcelas > 1) {
-        <hr>
-        <div class="fw-semibold mb-2">Parcelas</div>
-        <div class="table-responsive">
-          <table class="table table-sm align-middle">
-            <thead>
-              <tr>
-                <th style="width: 3rem;">#</th>
-                <th>Forma de pagamento</th>
-                <th>Vencimento</th>
-                <th class="text-end">Valor da parcela</th>
-                <th class="text-end">Valor pago</th>
-              </tr>
-            </thead>
-            <tbody>
-              @for (linha of linhasParcela; track $index; let i = $index) {
-              <tr>
-                <td>{{ i + 1 }}</td>
-                <td>
-                  <select class="form-select form-select-sm" [(ngModel)]="linha.formaPagamento">
-                    @for (forma of formasPagamento; track forma.valor) {
-                    <option [ngValue]="forma.valor">{{ forma.label }}</option>
-                    }
-                  </select>
-                </td>
-                <td>
-                  <input type="date" class="form-control form-control-sm" [(ngModel)]="linha.dataVencimento">
-                </td>
-                <td class="text-end">{{ linha.valorParcela | number:'1.2-2' }}</td>
-                <td>
-                  <input type="number" min="0" step="0.01" class="form-control form-control-sm text-end" [(ngModel)]="linha.valorPago" placeholder="em aberto">
-                </td>
-              </tr>
-              }
-            </tbody>
-          </table>
-        </div>
-        <div class="text-secondary small">Deixe o valor pago em branco para marcar a parcela como em aberto.</div>
-        }
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-outline-secondary" (click)="voltarVenda()">
-          <i class="fa-solid fa-arrow-left me-1"></i>[Esc] Voltar à venda
-        </button>
-        <button type="button" class="btn btn-primary" (click)="finalizarVenda()">
-          <i class="fa-solid fa-check me-1"></i>[Ctrl+F11] Finalizar venda
         </button>
       </div>
     </div>
