@@ -1,0 +1,29 @@
+crud: receber
+metadados: sem YAML (solicitação direta do usuário; tabela receber já existia via PDV)
+checksumNormalizado: null
+executadoEm: "2026-07-03T00:00:00-03:00"
+status: criado
+observacao: >
+  Tela de pesquisa (consulta) de Contas a Receber, sem cadastro e sem ações de
+  editar/excluir, pois as parcelas são geradas pelo PDV. Backend de pesquisa
+  (filter QueryDSL, service, resource e DTO) criado para suportar os filtros:
+  idVenda (exato), nomeCliente (contém), cpfCliente (exato), dataInicio
+  (vencimento >=), dataFinal (vencimento <=) e emAberto (valor_pago nulo).
+  Inclui baixa em lote (POST /receber/baixa): parcelas em aberto de uma mesma
+  venda são excluídas e substituídas por um único recebimento com data de
+  pagamento, forma de pagamento e valor pago informados em modal.
+arquivos:
+  - backend/src/main/java/com/github/andrepenteado/venda/domain/repositories/ReceberRepository.java
+  - backend/src/main/java/com/github/andrepenteado/venda/domain/filter/ReceberFilter.java
+  - backend/src/main/java/com/github/andrepenteado/venda/domain/dto/ReceberPesquisaResponse.java
+  - backend/src/main/java/com/github/andrepenteado/venda/domain/dto/ReceberBaixaRequest.java
+  - backend/src/main/java/com/github/andrepenteado/venda/services/ReceberService.java
+  - backend/src/main/java/com/github/andrepenteado/venda/resources/ReceberResource.java
+  - frontend/src/app/config/api.ts
+  - frontend/src/app/config/routes.ts
+  - frontend/src/app/config/menu.ts
+  - frontend/src/app/domain/entities/receber.ts
+  - frontend/src/app/services/receber.service.ts
+  - frontend/src/app/pages/receber/receber.routes.ts
+  - frontend/src/app/pages/receber/pesquisar/pesquisar.componente.ts
+  - frontend/src/app/pages/receber/pesquisar/pesquisar.componente.html

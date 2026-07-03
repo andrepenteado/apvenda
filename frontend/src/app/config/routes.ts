@@ -36,6 +36,11 @@ export const DECORATED_ROUTES: Routes = [
   },
 
   {
+    path: "receber",
+    loadChildren: () => import("../pages/receber/receber.routes").then(m => m.RECEBER_ROUTES)
+  },
+
+  {
     path: "pagina-inicial",
     component: PaginaInicialComponent
   }

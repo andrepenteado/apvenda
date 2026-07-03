@@ -8,6 +8,7 @@ package com.github.andrepenteado.venda.domain.repositories;
 import com.github.andrepenteado.venda.domain.entities.Receber;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.querydsl.QuerydslPredicateExecutor;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -17,7 +18,7 @@ import java.util.List;
 /**
  * Repositório de Receber.
  */
-public interface ReceberRepository extends JpaRepository<Receber, Long> {
+public interface ReceberRepository extends JpaRepository<Receber, Long>, QuerydslPredicateExecutor<Receber> {
 
     /**
      * Soma as parcelas ainda não pagas.

@@ -61,6 +61,16 @@ export const menu: Menu[] = [
     roles: [`${PREFIXO_PERFIL_SISTEMA}CAIXA`],
     subMenus: [
     ]
+  },
+
+  {
+    id: "receber",
+    texto: "Contas a Receber",
+    icone: "hand-holding-dollar",
+    path: "/receber",
+    roles: [`${PREFIXO_PERFIL_SISTEMA}CAIXA`],
+    subMenus: [
+    ]
   }
 
 ];
