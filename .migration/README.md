@@ -22,18 +22,30 @@ banco PostgreSQL do APvenda. Foi escrito para ser entendido e repetido tanto por
 │   └── texto.py              <- normalização de nomes (abreviações, acentos, capitalização)
 ├── sql/                      <- SQLs gerados, prontos para rodar no banco
 │   ├── categoria.sql
-│   └── produto.sql
+│   ├── produto.sql
+│   └── venda.sql
 ├── categoria/                <- 1 pasta por tabela migrada
 │   ├── migrar_categoria.py   <- script que LÊ o DBF e GERA o .sql
 │   └── MAPEAMENTO.md         <- estrutura de origem, mapeamento e decisões
-└── produto/
-    ├── migrar_produto.py     <- MAT_004.DBF -> produto (de/para unidade, FKs compat)
+├── produto/
+│   ├── migrar_produto.py     <- MAT_004.DBF -> produto (de/para unidade, FKs compat)
+│   └── MAPEAMENTO.md
+└── venda/
+    ├── migrar_venda.py       <- MAT_005.DBF -> venda/item_venda/receber (só cliente consumidor)
     └── MAPEAMENTO.md
 ```
 
 > **Ordem de aplicação no banco:** `categoria.sql` → (tabela `produto` criada pelo
-> CRUD) → `produto.sql`. O `produto.sql` cria os registros de compatibilidade
-> (`categoria`/`marca` com nome `Migração`) exigidos pelas FKs obrigatórias.
+> CRUD) → `produto.sql` → `venda.sql`. O `produto.sql` cria os registros de
+> compatibilidade (`categoria`/`marca` com nome `Migração`) exigidos pelas FKs
+> obrigatórias. O `venda.sql` depende do `produto.sql` já aplicado (itens
+> referenciam `produto.id`).
+>
+> **Pendência conhecida:** `venda.sql` migra só as vendas do cliente genérico
+> "CONSUMIDOR" (~99,9% do histórico). As vendas com cliente identificado ficaram
+> de fora porque o cadastro atual de `cliente` exige CPF (não aceita CNPJ nem
+> cliente sem documento) — ver decisão 1 em `venda/MAPEAMENTO.md` para a lista
+> exata e o que falta para destravar.
 
 Cada nova tabela migrada ganha a sua própria subpasta (`produto/`, `cliente/`, …)
 com o mesmo par de arquivos: um script `migrar_<tabela>.py` e um `MAPEAMENTO.md`.
