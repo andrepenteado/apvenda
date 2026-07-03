@@ -15,6 +15,7 @@ import java.util.List;
  * @param id identificador da venda.
  * @param dataHora data e hora da venda.
  * @param total total da venda.
+ * @param cliente nome do cliente vinculado; nulo quando consumidor.
  * @param itens itens da venda.
  * @param recebimentos parcelas a receber geradas.
  */
@@ -22,6 +23,7 @@ public record VendaResponse(
     Long id,
     LocalDateTime dataHora,
     BigDecimal total,
+    String cliente,
     List<ItemConsolidado> itens,
     List<ReceberResponse> recebimentos
 ) {

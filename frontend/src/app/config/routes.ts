@@ -6,6 +6,11 @@ export const DECORATED_ROUTES: Routes = [
   { path: "", component: PaginaInicialComponent },
 
   {
+    path: "dashboard",
+    loadChildren: () => import("../pages/dashboard/dashboard.routes").then(m => m.DASHBOARD_ROUTES)
+  },
+
+  {
     path: "marcas",
     loadChildren: () => import("../pages/marca/marca.routes").then(m => m.MARCA_ROUTES)
   },
@@ -23,6 +28,11 @@ export const DECORATED_ROUTES: Routes = [
   {
     path: "pdv",
     loadChildren: () => import("../pages/pdv/pdv.routes").then(m => m.PDV_ROUTES)
+  },
+
+  {
+    path: "clientes",
+    loadChildren: () => import("../pages/cliente/cliente.routes").then(m => m.CLIENTE_ROUTES)
   },
 
   {

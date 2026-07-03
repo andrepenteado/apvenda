@@ -7,3 +7,4 @@ export const API_MARCAS: string = '/marcas';
 export const API_CATEGORIAS: string = '/categorias';
 export const API_PRODUTOS: string = '/produtos';
 export const API_VENDAS: string = '/vendas';
+export const API_CLIENTES: string = '/clientes';

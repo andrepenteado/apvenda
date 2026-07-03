@@ -153,6 +153,7 @@
             <column name="total" type="NUMERIC">
                 <constraints nullable="false"/>
             </column>
+            <column name="fk_cliente" type="BIGINT"/>
             <column name="criado_por" type="VARCHAR">
                 <constraints nullable="false"/>
             </column>
@@ -232,6 +233,43 @@
         </createIndex>
         <createIndex tableName="receber" indexName="idx_receber_venda">
             <column name="fk_venda"/>
+        </createIndex>
+
+        <createTable tableName="cliente">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="pk_cliente"/>
+            </column>
+            <column name="nome" type="VARCHAR">
+                <constraints nullable="false"/>
+            </column>
+            <column name="cpf" type="BIGINT">
+                <constraints nullable="false" unique="true" uniqueConstraintName="un_cliente_cpf"/>
+            </column>
+            <column name="telefone" type="VARCHAR"/>
+            <column name="whatsapp" type="BOOLEAN"/>
+            <column name="criado_por" type="VARCHAR">
+                <constraints nullable="false"/>
+            </column>
+            <column name="criado_em" type="TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="alterado_por" type="VARCHAR"/>
+            <column name="alterado_em" type="TIMESTAMP"/>
+        </createTable>
+        <createIndex tableName="cliente" indexName="idx_cliente_nome">
+            <column name="nome"/>
+        </createIndex>
+        <createIndex tableName="cliente" indexName="idx_cliente_cpf">
+            <column name="cpf"/>
+        </createIndex>
+        <addForeignKeyConstraint
+            baseTableName="venda"
+            baseColumnNames="fk_cliente"
+            constraintName="fk_venda_cliente"
+            referencedTableName="cliente"
+            referencedColumnNames="id"/>
+        <createIndex tableName="venda" indexName="idx_venda_cliente">
+            <column name="fk_cliente"/>
         </createIndex>
     </changeSet>
 

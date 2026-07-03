@@ -4,6 +4,16 @@ import { PREFIXO_PERFIL_SISTEMA } from "./layout";
 export const menu: Menu[] = [
 
   {
+    id: "dashboard",
+    texto: "Dashboard",
+    icone: "chart-line",
+    path: "/dashboard",
+    roles: [`${PREFIXO_PERFIL_SISTEMA}CAIXA`],
+    subMenus: [
+    ]
+  },
+
+  {
     id: "marca",
     texto: "Marcas",
     icone: "tag",
@@ -28,6 +38,16 @@ export const menu: Menu[] = [
     texto: "Produtos",
     icone: "box",
     path: "/produtos",
+    roles: [`${PREFIXO_PERFIL_SISTEMA}CAIXA`],
+    subMenus: [
+    ]
+  },
+
+  {
+    id: "cliente",
+    texto: "Clientes",
+    icone: "user",
+    path: "/clientes",
     roles: [`${PREFIXO_PERFIL_SISTEMA}CAIXA`],
     subMenus: [
     ]

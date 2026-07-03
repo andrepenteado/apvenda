@@ -35,6 +35,7 @@
     "@ng-select/ng-select": "^21.8.2",
     "bootstrap": "^5.3.8",
     "bootswatch": "^5.3.8",
+    "chart.js": "^4.5.1",
     "datatables.net": "^2.3.6",
     "datatables.net-bs5": "^2.3.6",
     "datatables.net-buttons": "^3.2.6",

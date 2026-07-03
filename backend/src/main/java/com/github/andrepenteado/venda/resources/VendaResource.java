@@ -5,6 +5,7 @@
  */
 package com.github.andrepenteado.venda.resources;
 
+import com.github.andrepenteado.venda.domain.dto.DashboardResponse;
 import com.github.andrepenteado.venda.domain.dto.VendaConsolidada;
 import com.github.andrepenteado.venda.domain.dto.VendaRequest;
 import com.github.andrepenteado.venda.domain.dto.VendaResponse;
@@ -12,6 +13,7 @@ import com.github.andrepenteado.venda.services.VendaService;
 import io.micrometer.observation.annotation.Observed;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -36,6 +38,17 @@ public class VendaResource {
      */
     public VendaResource(VendaService service) {
         this.service = service;
+    }
+
+    /**
+     * Monta o resumo financeiro consolidado para o dashboard.
+     *
+     * @return resumo financeiro de vendas.
+     */
+    @GetMapping("/dashboard")
+    public DashboardResponse dashboard() {
+        LOGGER.info("GET /vendas/dashboard - Dashboard financeiro de Vendas");
+        return service.dashboard();
     }
 
     /**

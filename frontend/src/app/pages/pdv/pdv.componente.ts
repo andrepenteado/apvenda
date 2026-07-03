@@ -7,18 +7,21 @@ import { CommonModule } from '@angular/common';
 import { Component, ElementRef, HostListener, OnDestroy, OnInit, ViewChild, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { NgSelectComponent, NgSelectModule } from '@ng-select/ng-select';
-import { DecoracaoMensagem, ExibirMensagemService } from '@andre.penteado/ngx-apcore';
+import { DecoracaoMensagem, ExibirMensagemService, UploadService } from '@andre.penteado/ngx-apcore';
 import { Subject, Subscription, debounceTime, distinctUntilChanged, switchMap } from 'rxjs';
 import Swal from 'sweetalert2';
+import { Cliente } from '../../domain/entities/cliente';
 import { Produto } from '../../domain/entities/produto';
 import { FormaPagamento, FormaPagamentoLabels } from '../../domain/enums/forma-pagamento';
 import { Unidade, UnidadeLabels } from '../../domain/enums/unidade';
+import { ClienteService } from '../../services/cliente.service';
 import { ParcelaRequest, VendaRequest, VendaResponse, VendaService } from '../../services/venda.service';
 
 interface ItemCarrinho {
   produtoId: number;
   nome: string;
   unidade: Unidade;
+  foto?: string | null;
   quantidade: number;
   valorUnitario: number;
   valorTotal: number;
@@ -47,8 +50,17 @@ export class PdvComponente implements OnInit, OnDestroy {
   produtoSelecionado: Produto | null = null;
   quantidade = 1;
 
+  readonly semImagem = 'assets/images/sem-imagem.gif';
+
   modoExclusao = false;
   indiceExclusao = 0;
+
+  clienteModalAberto = false;
+  clienteSelecionado: Cliente | null = null;
+  clienteModel: Cliente | null = null;
+  clientes: Cliente[] = [];
+  readonly pesquisaCliente$ = new Subject<string>();
+  buscandoCliente = false;
 
   pagamentoAberto = false;
   totalConsolidado = 0;
@@ -67,10 +79,16 @@ export class PdvComponente implements OnInit, OnDestroy {
 
   @ViewChild('pesquisaSelect') pesquisaSelect?: NgSelectComponent;
   @ViewChild('inputQtd') inputQtd?: ElementRef<HTMLInputElement>;
+  @ViewChild('clienteSelect') clienteSelect?: NgSelectComponent;
+  @ViewChild('selectForma') selectForma?: ElementRef<HTMLSelectElement>;
 
   private readonly service = inject(VendaService);
+  private readonly clienteService = inject(ClienteService);
+  private readonly uploadService = inject(UploadService);
   private readonly mensagemService = inject(ExibirMensagemService);
   private subscription?: Subscription;
+  private subscriptionCliente?: Subscription;
+  private readonly fotosCache = new Map<string, string>();
 
   ngOnInit(): void {
     this.subscription = this.pesquisa$.pipe(
@@ -84,14 +102,30 @@ export class PdvComponente implements OnInit, OnDestroy {
       next: produtos => {
         this.produtos = produtos;
         this.buscando = false;
+        this.carregarFotos(produtos);
       },
       error: () => (this.buscando = false)
+    });
+    this.subscriptionCliente = this.pesquisaCliente$.pipe(
+      debounceTime(250),
+      distinctUntilChanged(),
+      switchMap(termo => {
+        this.buscandoCliente = true;
+        return this.clienteService.pesquisar({ nome: termo ?? '' });
+      })
+    ).subscribe({
+      next: clientes => {
+        this.clientes = clientes;
+        this.buscandoCliente = false;
+      },
+      error: () => (this.buscandoCliente = false)
     });
     setTimeout(() => this.focarPesquisa(), 100);
   }
 
   ngOnDestroy(): void {
     this.subscription?.unsubscribe();
+    this.subscriptionCliente?.unsubscribe();
   }
 
   get total(): number {
@@ -104,6 +138,15 @@ export class PdvComponente implements OnInit, OnDestroy {
 
   get cabecalhoCupom(): string {
     return this.vendaFinalizada ? `VENDA #${this.vendaFinalizada.id}` : 'ORÇAMENTO';
+  }
+
+  get nomeCliente(): string {
+    return this.clienteSelecionado?.nome ?? 'CONSUMIDOR';
+  }
+
+  fotoSrc(entidade: { foto?: string | null } | null): string {
+    const uuid = entidade?.foto;
+    return (uuid && this.fotosCache.get(uuid)) || this.semImagem;
   }
 
   labelParcelas(n: number): string {
@@ -147,6 +190,7 @@ export class PdvComponente implements OnInit, OnDestroy {
         produtoId: produto.id!,
         nome: produto.nome,
         unidade: produto.unidade,
+        foto: produto.foto,
         quantidade: this.quantidade,
         valorUnitario: preco,
         valorTotal: this.arred2(this.quantidade * preco)
@@ -157,6 +201,34 @@ export class PdvComponente implements OnInit, OnDestroy {
     this.produtos = [];
     this.quantidade = 1;
     setTimeout(() => this.focarPesquisa(), 0);
+  }
+
+  abrirModalCliente(): void {
+    this.clienteModel = this.clienteSelecionado;
+    this.clientes = this.clienteSelecionado ? [this.clienteSelecionado] : [];
+    this.clienteModalAberto = true;
+    setTimeout(() => this.clienteSelect?.focus(), 100);
+  }
+
+  fecharModalCliente(): void {
+    this.clienteModalAberto = false;
+    setTimeout(() => this.focarPesquisa(), 0);
+  }
+
+  selecionarCliente(cliente: Cliente | null): void {
+    this.clienteSelecionado = cliente ?? null;
+    this.fecharModalCliente();
+  }
+
+  removerVinculoCliente(): void {
+    this.clienteSelecionado = null;
+    this.clienteModel = null;
+    this.fecharModalCliente();
+  }
+
+  formatarCpf(cpf: number): string {
+    const digitos = String(cpf).padStart(11, '0');
+    return digitos.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
   }
 
   confirmarExclusao(): void {
@@ -200,6 +272,7 @@ export class PdvComponente implements OnInit, OnDestroy {
         this.dataPrimeiraParcela = this.hojeIso();
         this.montarLinhasParcela();
         this.pagamentoAberto = true;
+        setTimeout(() => this.selectForma?.nativeElement.focus(), 100);
       }
     });
   }
@@ -230,6 +303,7 @@ export class PdvComponente implements OnInit, OnDestroy {
     }));
     const request: VendaRequest = {
       itens: this.itens.map(item => ({ produto: item.produtoId, quantidade: item.quantidade })),
+      cliente: this.clienteSelecionado?.id ?? null,
       juros: this.juros || 0,
       desconto: this.desconto || 0,
       parcelas
@@ -297,6 +371,10 @@ export class PdvComponente implements OnInit, OnDestroy {
     this.produtos = [];
     this.quantidade = 1;
     this.modoExclusao = false;
+    this.clienteModalAberto = false;
+    this.clienteSelecionado = null;
+    this.clienteModel = null;
+    this.clientes = [];
     this.pagamentoAberto = false;
     this.impressaoAberta = false;
     this.vendaFinalizada = null;
@@ -340,6 +418,14 @@ export class PdvComponente implements OnInit, OnDestroy {
       return;
     }
 
+    if (this.clienteModalAberto) {
+      if (tecla === 'Escape') {
+        evento.preventDefault();
+        this.fecharModalCliente();
+      }
+      return;
+    }
+
     // Montagem da venda.
     if (tecla === 'F2') {
       evento.preventDefault();
@@ -354,6 +440,11 @@ export class PdvComponente implements OnInit, OnDestroy {
     if (tecla === 'F4') {
       evento.preventDefault();
       this.abrirImpressao();
+      return;
+    }
+    if (tecla === 'F6') {
+      evento.preventDefault();
+      this.abrirModalCliente();
       return;
     }
     if (tecla === 'F10') {
@@ -387,6 +478,20 @@ export class PdvComponente implements OnInit, OnDestroy {
       evento.preventDefault();
       this.modoExclusao = true;
       this.indiceExclusao = 0;
+    }
+  }
+
+  private carregarFotos(produtos: Produto[]): void {
+    for (const produto of produtos) {
+      const uuid = produto.foto;
+      if (!uuid || this.fotosCache.has(uuid)) {
+        continue;
+      }
+      // Reserva a entrada no cache para não disparar buscas duplicadas em paralelo.
+      this.fotosCache.set(uuid, this.semImagem);
+      this.uploadService.buscar(uuid).subscribe({
+        next: upload => this.fotosCache.set(uuid, `data:${upload.tipoMime};base64,${upload.base64}`)
+      });
     }
   }
 

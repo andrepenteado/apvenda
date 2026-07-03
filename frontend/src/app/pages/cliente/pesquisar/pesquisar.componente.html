@@ -1,5 +1,5 @@
 <ngx-ui-loader
-  loaderId="produto-pesquisar"
+  loaderId="cliente-pesquisar"
   fgsType="three-bounce"
   fgsColor="#0d6efd"
   overlayColor="rgba(255, 255, 255, 0.82)"
@@ -15,7 +15,7 @@
         Início
       </a>
     </li>
-    <li class="breadcrumb-item active" aria-current="page">Produtos</li>
+    <li class="breadcrumb-item active" aria-current="page">Clientes</li>
   </ol>
 </nav>
 
@@ -26,8 +26,8 @@
         <i class="fa-solid fa-table-list me-1"></i>
         Pesquisar
       </div>
-      <h1 class="h3 fw-bold mb-1">Produtos</h1>
-      <p class="text-secondary mb-0">Consulte e mantenha os produtos cadastrados.</p>
+      <h1 class="h3 fw-bold mb-1">Clientes</h1>
+      <p class="text-secondary mb-0">Consulte e mantenha os clientes cadastrados.</p>
     </div>
     <div class="col-auto">
       <button type="button" class="btn btn-primary" (click)="novo()">
@@ -42,7 +42,7 @@
       <div class="card h-100">
         <div class="card-body">
           <div class="text-secondary small">Total listado</div>
-          <div class="fs-4 fw-semibold">{{ produtos.length }}</div>
+          <div class="fs-4 fw-semibold">{{ clientes.length }}</div>
         </div>
       </div>
     </div>
@@ -58,7 +58,7 @@
       <div class="card h-100">
         <div class="card-body">
           <div class="text-secondary small">Filtros disponíveis</div>
-          <div class="fs-5 fw-semibold">Nome, categoria, marca, unidade e ativo</div>
+          <div class="fs-5 fw-semibold">Nome e CPF</div>
         </div>
       </div>
     </div>
@@ -70,15 +70,15 @@
         type="button"
         class="btn btn-outline-secondary btn-sm"
         data-bs-toggle="collapse"
-        data-bs-target="#produto-filtros"
+        data-bs-target="#cliente-filtros"
         aria-expanded="false"
-        aria-controls="produto-filtros">
+        aria-controls="cliente-filtros">
         <i class="fa-solid fa-filter me-1"></i>
         Filtrar Pesquisa
       </button>
     </div>
 
-    <div id="produto-filtros" class="collapse filters-collapse">
+    <div id="cliente-filtros" class="collapse filters-collapse">
       <div class="card-body border-bottom">
         <form class="row g-2 align-items-center" (ngSubmit)="pesquisar()">
           <div class="col-12 col-md">
@@ -93,65 +93,14 @@
           </div>
           <div class="col-12 col-md">
             <input
-              id="filtro-codigo-barras"
+              id="filtro-cpf"
               type="text"
-              name="codigoBarras"
+              name="cpf"
               class="form-control"
-              placeholder="Código de Barras"
-              aria-label="Código de Barras"
-              [(ngModel)]="filtro.codigoBarras">
-          </div>
-          <div class="col-12 col-md">
-            <ng-select
-              id="filtro-categoria"
-              name="categoria"
-              class="ng-select-bootstrap"
-              [items]="categorias"
-              bindLabel="nome"
-              bindValue="id"
-              placeholder="Categoria"
-              aria-label="Categoria"
-              [(ngModel)]="filtro.categoria">
-            </ng-select>
-          </div>
-          <div class="col-12 col-md">
-            <ng-select
-              id="filtro-marca"
-              name="marca"
-              class="ng-select-bootstrap"
-              [items]="marcas"
-              bindLabel="nome"
-              bindValue="id"
-              placeholder="Marca"
-              aria-label="Marca"
-              [(ngModel)]="filtro.marca">
-            </ng-select>
-          </div>
-          <div class="col-12 col-md">
-            <ng-select
-              id="filtro-unidade"
-              name="unidade"
-              class="ng-select-bootstrap"
-              [items]="unidades"
-              bindLabel="label"
-              bindValue="valor"
-              placeholder="Unidade"
-              aria-label="Unidade"
-              [(ngModel)]="filtro.unidade">
-            </ng-select>
-          </div>
-          <div class="col-12 col-md">
-            <select
-              id="filtro-ativo"
-              name="ativo"
-              class="form-select"
-              [class.text-secondary]="filtro.ativo === null"
-              aria-label="Ativo?"
-              [(ngModel)]="filtro.ativo">
-              <option [ngValue]="null" disabled>Ativo?</option>
-              <option [ngValue]="true">Sim</option>
-              <option [ngValue]="false">Não</option>
-            </select>
+              mask="000.000.000-00"
+              placeholder="CPF"
+              aria-label="CPF"
+              [(ngModel)]="filtro.cpf">
           </div>
           <div class="col-6 col-md-auto">
             <button type="submit" class="btn btn-primary w-100" title="Pesquisar" aria-label="Pesquisar">
@@ -170,51 +119,43 @@
     <div class="card-body">
       @if (exibirTabela) {
       <div class="table-responsive">
-        <table id="datatables-pesquisar-produtos" class="table table-striped table-hover align-middle w-100">
+        <table id="datatables-pesquisar-clientes" class="table table-striped table-hover align-middle w-100">
           <thead>
             <tr>
               <th>Ações</th>
               <th>ID</th>
               <th>Nome</th>
-              <th>Categoria</th>
-              <th>Marca</th>
-              <th>Preço de Venda</th>
-              <th>Estoque Atual</th>
-              <th>Ativo?</th>
+              <th>CPF</th>
+              <th>Telefone</th>
+              <th>Whatsapp?</th>
             </tr>
           </thead>
           <tbody>
-            @for (produto of produtos; track produto.id) {
+            @for (cliente of clientes; track cliente.id) {
             <tr>
               <td>
                 <div class="action-stack d-flex gap-1">
-                  <button type="button" class="btn btn-outline-primary btn-sm" title="Editar" (click)="editar(produto)">
+                  <button type="button" class="btn btn-outline-primary btn-sm" title="Editar" (click)="editar(cliente)">
                     <i class="fa-solid fa-pen-to-square"></i>
                   </button>
-                  <button type="button" class="btn btn-outline-danger btn-sm" title="Excluir" (click)="excluir(produto)">
+                  <button type="button" class="btn btn-outline-danger btn-sm" title="Excluir" (click)="excluir(cliente)">
                     <i class="fa-solid fa-trash-can"></i>
                   </button>
                 </div>
               </td>
-              <td>{{ produto.id }}</td>
+              <td>{{ cliente.id }}</td>
               <td class="record-cell d-flex align-items-center">
                 <span class="text-primary me-2">
-                  <i class="fa-solid fa-box"></i>
+                  <i class="fa-solid fa-user"></i>
                 </span>
                 <div>
-                  <div class="record-main fw-semibold">{{ produto.nome }}</div>
-                  <div class="record-sub text-secondary small">Produto</div>
+                  <div class="record-main fw-semibold">{{ cliente.nome }}</div>
+                  <div class="record-sub text-secondary small">Cliente</div>
                 </div>
               </td>
-              <td>{{ getNomeCategoria(produto) }}</td>
-              <td>{{ getNomeMarca(produto) }}</td>
-              <td>{{ produto.precoVenda != null ? (produto.precoVenda | number:'1.2-2') : '-' }}</td>
-              <td>{{ produto.estoqueAtual != null ? (produto.estoqueAtual | number:'1.0-0') : '-' }}</td>
-              <td>
-                <span class="badge" [class.bg-success]="produto.ativo" [class.bg-secondary]="!produto.ativo">
-                  {{ produto.ativo ? 'Sim' : 'Não' }}
-                </span>
-              </td>
+              <td>{{ formatarCpf(cliente.cpf) }}</td>
+              <td>{{ cliente.telefone || '-' }}</td>
+              <td>{{ cliente.whatsapp ? 'Sim' : 'Não' }}</td>
             </tr>
             }
           </tbody>

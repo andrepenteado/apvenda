@@ -12,12 +12,14 @@ import java.util.List;
  * finalização, os dados de pagamento também são informados.
  *
  * @param itens itens do carrinho.
+ * @param cliente identificador do cliente vinculado; nulo quando consumidor.
  * @param juros juros em percentual inteiro sobre o total (finalização).
  * @param desconto desconto em percentual inteiro sobre o total (finalização).
  * @param parcelas parcelas informadas (1 registro = à vista; N registros = parcelado).
  */
 public record VendaRequest(
     List<ItemVendaRequest> itens,
+    Long cliente,
     Integer juros,
     Integer desconto,
     List<ParcelaRequest> parcelas

@@ -16,12 +16,24 @@
   min-height: calc(1.5em + 1rem + 2px);
 }
 
-/* Cupom fiscal. */
+/* Miniaturas nos resultados da busca de produtos, com linhas mais espaçadas. */
+.pdv-campos ::ng-deep .ng-select .ng-dropdown-panel .ng-option {
+  padding-bottom: .5rem;
+  padding-top: .5rem;
+}
+
+.pdv-opcao-foto {
+  height: 2.5rem;
+  object-fit: cover;
+  width: 2.5rem;
+}
+
+/* Cupom fiscal: cores seguem o tema (claro/escuro) via variáveis do Bootstrap. */
 .cupom {
-  background: #fff;
-  color: #000;
+  background: var(--bs-body-bg);
+  color: var(--bs-body-color);
   font-family: "Courier New", Courier, monospace;
-  border: 1px solid #adb5bd;
+  border: 1px solid var(--bs-border-color);
   border-radius: .375rem;
   padding: 1rem;
 }
@@ -33,13 +45,26 @@
 }
 
 .cupom-sep {
-  border-top: 1px dashed #000;
+  border-top: 1px dashed var(--bs-body-color);
   margin: .35rem 0;
 }
 
 .cupom-row {
   display: flex;
   align-items: baseline;
+}
+
+/* Linha de item com foto: maior altura, aumentando o espaçamento entre produtos. */
+.cupom-item {
+  align-items: center;
+  margin: .5rem 0;
+}
+
+.cupom-item-foto {
+  height: 2.75rem;
+  object-fit: cover;
+  width: 2.75rem;
+  flex-shrink: 0;
 }
 
 .cupom-cabecalho,
@@ -72,13 +97,13 @@
 }
 
 .cupom-selecionado {
-  background: #fff3cd;
+  background: var(--bs-warning-bg-subtle);
 }
 
 .cupom-vazio {
   text-align: center;
   padding: .5rem 0;
-  color: #6c757d;
+  color: var(--bs-secondary-color);
 }
 
 /* Impressão: só o modal do cupom vai ao papel, ocupando a folha A4 inteira. */
@@ -115,5 +140,15 @@
 
   .pdv-impressao .cupom-row .col-produto {
     white-space: normal;
+  }
+
+  /* Papel impresso deve sair sempre claro, independente do tema ativo na tela. */
+  .pdv-impressao {
+    background: #fff !important;
+    color: #000 !important;
+  }
+
+  .pdv-impressao .cupom-sep {
+    border-top-color: #000 !important;
   }
 }

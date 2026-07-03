@@ -24,6 +24,7 @@ export interface ParcelaRequest {
 
 export interface VendaRequest {
   itens: ItemVendaRequest[];
+  cliente?: number | null;
   juros?: number;
   desconto?: number;
   parcelas?: ParcelaRequest[];
@@ -55,8 +56,47 @@ export interface VendaResponse {
   id: number;
   dataHora: string;
   total: number;
+  cliente: string | null;
   itens: ItemConsolidado[];
   recebimentos: ReceberResponse[];
+}
+
+export interface VendaDia {
+  data: string;
+  total: number;
+  quantidade: number;
+}
+
+export interface TopProduto {
+  nome: string;
+  quantidade: number;
+  total: number;
+}
+
+export interface FormaPagamentoTotal {
+  formaPagamento: FormaPagamento;
+  total: number;
+}
+
+export interface TopCliente {
+  nome: string;
+  quantidade: number;
+  total: number;
+}
+
+export interface DashboardResponse {
+  totalHoje: number;
+  quantidadeHoje: number;
+  totalMes: number;
+  quantidadeMes: number;
+  ticketMedioMes: number;
+  receberAberto: number;
+  receberVencido: number;
+  recebidoMes: number;
+  vendasPorDia: VendaDia[];
+  topProdutos: TopProduto[];
+  formasPagamento: FormaPagamentoTotal[];
+  topClientes: TopCliente[];
 }
 
 @Injectable({
@@ -78,6 +118,10 @@ export class VendaService {
 
   finalizar(request: VendaRequest): Observable<VendaResponse> {
     return this.http.post<VendaResponse>(`${this.initConfig.urlBackend}${API_VENDAS}`, request);
+  }
+
+  dashboard(): Observable<DashboardResponse> {
+    return this.http.get<DashboardResponse>(`${this.initConfig.urlBackend}${API_VENDAS}/dashboard`);
   }
 
 }

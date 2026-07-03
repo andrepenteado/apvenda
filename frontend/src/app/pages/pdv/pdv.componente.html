@@ -3,6 +3,14 @@
   <!-- Cabeçalho: campos de operação + ícone de PDV centralizado à direita -->
   <div class="row g-3 align-items-center mb-3">
     <div class="col">
+      <!-- Cliente vinculado: indicador discreto, clicável, acima do campo de produto. -->
+      <div class="small text-body-secondary mb-2">
+        <a role="button" class="text-decoration-none text-body-secondary" title="Vincular cliente [F6]" (click)="abrirModalCliente()">
+          <i class="fa-solid fa-user me-1"></i>
+          <span class="fw-semibold" [class.text-primary]="clienteSelecionado">{{ nomeCliente }}</span>
+        </a>
+        <span class="ms-1">[F6]</span>
+      </div>
       <div class="row g-2 align-items-end pdv-campos">
         <div class="col-12 col-lg-6">
           <label class="form-label fw-semibold mb-1">Produto <span class="text-secondary small">[F2]</span></label>
@@ -20,8 +28,9 @@
             [(ngModel)]="produtoModel"
             (change)="selecionarProduto($event)">
             <ng-template ng-option-tmp let-item="item">
-              <div class="d-flex justify-content-between">
-                <span>{{ item.nome }}</span>
+              <div class="d-flex align-items-center">
+                <img [src]="fotoSrc(item)" alt="" class="pdv-opcao-foto rounded me-2">
+                <span class="flex-grow-1 text-truncate">{{ item.nome }}</span>
                 <span class="text-muted ms-3">{{ item.precoVenda != null ? (item.precoVenda | number:'1.2-2') : '-' }}</span>
               </div>
             </ng-template>
@@ -64,6 +73,10 @@
   <div class="cupom mb-3">
     <div class="cupom-titulo">{{ cabecalhoCupom }}</div>
     <div class="cupom-sep"></div>
+    <div class="cupom-row">
+      <span class="col-produto">CLIENTE: {{ nomeCliente }}</span>
+    </div>
+    <div class="cupom-sep"></div>
     <div class="cupom-row cupom-cabecalho">
       <span class="col-produto">PRODUTO</span>
       <span class="col-qtd">QTD</span>
@@ -72,7 +85,8 @@
     </div>
     <div class="cupom-sep"></div>
     @for (item of itens; track item.produtoId; let i = $index) {
-    <div class="cupom-row" [class.cupom-selecionado]="modoExclusao && i === indiceExclusao">
+    <div class="cupom-row cupom-item" [class.cupom-selecionado]="modoExclusao && i === indiceExclusao">
+      <img [src]="fotoSrc(item)" alt="" class="cupom-item-foto rounded me-2">
       <span class="col-produto">{{ item.nome }}</span>
       <span class="col-qtd">{{ item.quantidade | number:'1.0-3' }} {{ unidadeLabel(item.unidade) }}</span>
       <span class="col-unit">{{ item.valorUnitario | number:'1.2-2' }}</span>
@@ -98,24 +112,83 @@
     <span><b>[F3]</b> Quantidade</span>
     <span><b>[Del]</b> Excluir item</span>
     <span><b>[F4]</b> Imprimir</span>
+    <span><b>[F6]</b> Cliente</span>
     <span><b>[F10]</b> Realizar pagamento</span>
     <span><b>[Ctrl+C]</b> Cancelar venda</span>
   </div>
 </section>
 
+<!-- Modal de vínculo de cliente -->
+@if (clienteModalAberto) {
+<div class="modal d-block" tabindex="-1" role="dialog">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title"><i class="fa-solid fa-user me-2"></i>Vincular cliente</h5>
+      </div>
+      <div class="modal-body">
+        <label class="form-label fw-semibold">Cliente</label>
+        <ng-select
+          #clienteSelect
+          class="ng-select-bootstrap"
+          [items]="clientes"
+          [typeahead]="pesquisaCliente$"
+          [loading]="buscandoCliente"
+          bindLabel="nome"
+          [minTermLength]="1"
+          typeToSearchText="Digite o nome do cliente"
+          notFoundText="Nenhum cliente encontrado"
+          loadingText="Buscando..."
+          [(ngModel)]="clienteModel"
+          (change)="selecionarCliente($event)">
+          <ng-template ng-option-tmp let-item="item">
+            <div class="d-flex justify-content-between">
+              <span>{{ item.nome }}</span>
+              <span class="text-muted ms-3">{{ formatarCpf(item.cpf) }}</span>
+            </div>
+          </ng-template>
+        </ng-select>
+        <div class="form-text">Sem vínculo, a venda é registrada como CONSUMIDOR.</div>
+      </div>
+      <div class="modal-footer">
+        @if (clienteSelecionado) {
+        <button type="button" class="btn btn-outline-danger me-auto" (click)="removerVinculoCliente()">
+          <i class="fa-solid fa-user-slash me-1"></i>Remover vínculo
+        </button>
+        }
+        <button type="button" class="btn btn-outline-secondary" (click)="fecharModalCliente()">
+          <i class="fa-solid fa-x me-1"></i>[Esc] Fechar
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="modal-backdrop show"></div>
+}
+
 <!-- Modal de pagamento -->
 @if (pagamentoAberto) {
 <div class="modal d-block" tabindex="-1" role="dialog">
-  <div class="modal-dialog modal-lg modal-dialog-centered">
+  <div class="modal-dialog modal-xl modal-dialog-centered">
     <div class="modal-content">
       <div class="modal-header">
         <h5 class="modal-title"><i class="fa-solid fa-money-bill-wave me-2"></i>Realizar pagamento</h5>
       </div>
       <div class="modal-body">
+        <!-- Valor total em destaque, não editável, em linha própria. -->
+        <div class="rounded bg-primary-subtle text-center p-3 mb-4">
+          <div class="small text-uppercase fw-semibold text-body-secondary">Valor total</div>
+          <div class="display-5 fw-bold text-primary">{{ totalConsolidado | number:'1.2-2' }}</div>
+        </div>
+
         <div class="row g-3">
           <div class="col-12 col-md-4">
-            <label class="form-label fw-semibold">Valor total</label>
-            <input type="text" class="form-control text-end" [value]="totalConsolidado | number:'1.2-2'" disabled>
+            <label class="form-label fw-semibold">Forma de pagamento</label>
+            <select #selectForma class="form-select" [(ngModel)]="formaPagamento" (ngModelChange)="montarLinhasParcela()">
+              @for (forma of formasPagamento; track forma.valor) {
+              <option [ngValue]="forma.valor">{{ forma.label }}</option>
+              }
+            </select>
           </div>
           <div class="col-6 col-md-4">
             <label class="form-label fw-semibold">Parcelas</label>
@@ -126,24 +199,16 @@
             </select>
           </div>
           <div class="col-6 col-md-4">
-            <label class="form-label fw-semibold">Data da 1ª parcela</label>
-            <input type="date" class="form-control" [(ngModel)]="dataPrimeiraParcela" (ngModelChange)="montarLinhasParcela()">
+            <label class="form-label fw-semibold">Desconto (%)</label>
+            <input type="number" min="0" step="1" class="form-control text-end" [(ngModel)]="desconto" (ngModelChange)="montarLinhasParcela()">
           </div>
           <div class="col-6 col-md-4">
             <label class="form-label fw-semibold">Juros (%)</label>
             <input type="number" min="0" step="1" class="form-control text-end" [(ngModel)]="juros" (ngModelChange)="montarLinhasParcela()">
           </div>
           <div class="col-6 col-md-4">
-            <label class="form-label fw-semibold">Desconto (%)</label>
-            <input type="number" min="0" step="1" class="form-control text-end" [(ngModel)]="desconto" (ngModelChange)="montarLinhasParcela()">
-          </div>
-          <div class="col-12 col-md-4">
-            <label class="form-label fw-semibold">Forma de pagamento</label>
-            <select class="form-select" [(ngModel)]="formaPagamento" (ngModelChange)="montarLinhasParcela()">
-              @for (forma of formasPagamento; track forma.valor) {
-              <option [ngValue]="forma.valor">{{ forma.label }}</option>
-              }
-            </select>
+            <label class="form-label fw-semibold">Data da 1ª parcela</label>
+            <input type="date" class="form-control" [(ngModel)]="dataPrimeiraParcela" (ngModelChange)="montarLinhasParcela()">
           </div>
         </div>
 
@@ -204,11 +269,15 @@
 <!-- Modal de impressão do cupom -->
 @if (impressaoAberta) {
 <div class="modal d-block" tabindex="-1" role="dialog">
-  <div class="modal-dialog modal-dialog-centered">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
     <div class="modal-content">
       <div class="modal-body">
         <div class="cupom pdv-impressao">
           <div class="cupom-titulo">{{ cabecalhoCupom }}</div>
+          <div class="cupom-sep"></div>
+          <div class="cupom-row">
+            <span class="col-produto">CLIENTE: {{ nomeCliente }}</span>
+          </div>
           <div class="cupom-sep"></div>
           <div class="cupom-row cupom-cabecalho">
             <span class="col-produto">PRODUTO</span>

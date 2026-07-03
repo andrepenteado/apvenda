@@ -1,0 +1,35 @@
+/*
+ * Autor: André Penteado
+ * Criado em: 02/07/2026 23:20:00 -03
+ * Observação: customizações exclusivas do dashboard.
+ */
+
+/* Alturas fixas incluem a faixa do eixo x, evitando scroll interno nos cards. */
+.grafico-area {
+  height: 320px;
+  position: relative;
+}
+
+.grafico-medio {
+  height: 260px;
+  position: relative;
+}
+
+.grafico-rosca {
+  height: 200px;
+  position: relative;
+  width: 200px;
+}
+
+/* Chave de cor da legenda: a identidade vem da marca colorida, nunca do texto. */
+.legenda-cor {
+  display: inline-block;
+  flex-shrink: 0;
+  height: .75rem;
+  width: .75rem;
+}
+
+/* Colunas de números alinham verticalmente. */
+.valores-tabulares {
+  font-variant-numeric: tabular-nums;
+}
