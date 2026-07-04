@@ -4,14 +4,14 @@
  * Observação: arquivo criado com ajuda da IA.
  */
 import { CommonModule } from '@angular/common';
-import { ChangeDetectorRef, Component, inject, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, inject, OnDestroy, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
-import { NgxMaskDirective, provideNgxMask } from 'ngx-mask';
 import { Datatables, DecoracaoMensagem, ExibirMensagemService } from '@andre.penteado/ngx-apcore';
 import { NgxUiLoaderModule, NgxUiLoaderService } from 'ngx-ui-loader';
 import Swal from 'sweetalert2';
 import { Cliente } from '../../../domain/entities/cliente';
+import { TipoPessoa, TipoPessoaLabels } from '../../../domain/enums/tipo-pessoa';
 import { CLIENTE_CAMPOS_PESQUISA, ClienteFiltro, ClienteService } from '../../../services/cliente.service';
 
 @Component({
@@ -19,11 +19,10 @@ import { CLIENTE_CAMPOS_PESQUISA, ClienteFiltro, ClienteService } from '../../..
   imports: [
     CommonModule,
     FormsModule,
-    NgxMaskDirective,
     NgxUiLoaderModule,
     RouterLink
   ],
-  providers: [provideNgxMask()],
+  changeDetection: ChangeDetectionStrategy.Eager,
   templateUrl: './pesquisar.componente.html'
 })
 export class PesquisarComponente implements OnInit, OnDestroy {
@@ -60,7 +59,7 @@ export class PesquisarComponente implements OnInit, OnDestroy {
   }
 
   pesquisar(): void {
-    if ((!this.filtro.nome || this.filtro.nome.trim() === '') && (!this.filtro.cpf || this.filtro.cpf.trim() === '')) {
+    if ((!this.filtro.nome || this.filtro.nome.trim() === '') && (!this.filtro.cpfCnpj || this.filtro.cpfCnpj.trim() === '')) {
       this.mensagemService.showMessage(
         'Informe ao menos um filtro para pesquisar.',
         'Clientes',
@@ -122,8 +121,17 @@ export class PesquisarComponente implements OnInit, OnDestroy {
     });
   }
 
-  formatarCpf(cpf: number): string {
-    const digitos = String(cpf).padStart(11, '0');
+  formatarTipoPessoa(tipoPessoa: TipoPessoa): string {
+    return TipoPessoaLabels[tipoPessoa];
+  }
+
+  formatarCpfCnpj(cliente: Cliente): string {
+    if (cliente.tipoPessoa === TipoPessoa.JURIDICA) {
+      const digitos = String(cliente.cpfCnpj).padStart(14, '0');
+      return digitos.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, '$1.$2.$3/$4-$5');
+    }
+
+    const digitos = String(cliente.cpfCnpj).padStart(11, '0');
     return digitos.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
   }
 

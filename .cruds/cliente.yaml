@@ -30,15 +30,27 @@ tabela:
       colunas-layout: 8
       exibe-grid: true
 
-    - nome: cpf
+    - nome: tipo_pessoa
+      tipo: string
+      label: Tipo de Pessoa
+      enum: TipoPessoa
+      obrigatorio: true
+      pesquisavel: false
+      colunas-layout: 4*
+      exibe-grid: true
+
+    # CPF (pessoa física) ou CNPJ (pessoa jurídica), conforme tipo_pessoa. Gravado
+    # sem formatação (long); a máscara exibida no cadastro varia de acordo com o
+    # tipo de pessoa selecionado (000.000.000-00 para CPF, 00.000.000/0000-00 para CNPJ).
+    - nome: cpf_cnpj
       tipo: long
-      label: CPF
+      label: CPF/CNPJ
       mask: 000.000.000-00
       obrigatorio: true
       unique: true
       indice: true
       pesquisavel: exato
-      colunas-layout: 4*
+      colunas-layout: 12*
       exibe-grid: true
 
     - nome: telefone
@@ -60,3 +72,11 @@ tabela:
       indice: false
       pesquisavel: false
       colunas-layout: 6*
+      exibe-grid: true
+
+    - nome: observacao
+      tipo: texto5
+      label: Observação
+      obrigatorio: false
+      colunas-layout: 12*
+      exibe-grid: false

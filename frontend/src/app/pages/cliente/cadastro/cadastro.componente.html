@@ -45,14 +45,14 @@
               <div class="text-secondary fw-semibold">Criado por</div>
               <div class="text-truncate">{{ cliente?.criadoPor || '-' }}</div>
               <div class="text-secondary fw-semibold mt-1">Criado em</div>
-              <div>{{ cliente?.criadoEm | date:'short' }}</div>
+              <div>{{ $safeNavigationMigration(cliente?.criadoEm) | date:'short' }}</div>
             </div>
             @if (cliente?.alteradoPor || cliente?.alteradoEm) {
             <div style="max-width: 12rem;">
               <div class="text-secondary fw-semibold">Alterado por</div>
               <div class="text-truncate">{{ cliente?.alteradoPor || '-' }}</div>
               <div class="text-secondary fw-semibold mt-1">Alterado em</div>
-              <div>{{ cliente?.alteradoEm ? (cliente?.alteradoEm | date:'short') : '-' }}</div>
+              <div>{{ cliente?.alteradoEm ? ($safeNavigationMigration(cliente?.alteradoEm) | date:'short') : '-' }}</div>
             </div>
             }
           </div>
@@ -80,13 +80,13 @@
           </span>
           <div>
             <div class="fw-semibold">Identificação</div>
-            <div class="text-secondary small">Nome e CPF usados para identificar o cliente.</div>
+            <div class="text-secondary small">Nome, tipo de pessoa e CPF/CNPJ usados para identificar o cliente.</div>
           </div>
         </div>
         <hr>
 
         <div class="row g-3 align-items-center">
-          <div class="col-12 col-md-8">
+          <div class="col-12">
             <label for="nome" class="form-label fw-semibold required-label text-danger">
               Nome
               <i class="fa-solid fa-circle-exclamation text-danger help-dot ms-1"></i>
@@ -101,18 +101,40 @@
           </div>
 
           <div class="col-12 col-md-4">
-            <label for="cpf" class="form-label fw-semibold required-label text-danger">
-              CPF
+            <div class="form-label fw-semibold required-label text-danger">
+              Tipo de Pessoa
+              <i class="fa-solid fa-circle-exclamation text-danger help-dot ms-1"></i>
+            </div>
+            <div class="d-flex flex-column gap-1 pt-2">
+              @for (opcao of tiposPessoa; track opcao.valor) {
+              <div class="form-check">
+                <input
+                  [id]="'tipo-pessoa-' + opcao.valor"
+                  type="radio"
+                  class="form-check-input"
+                  [value]="opcao.valor"
+                  formControlName="tipoPessoa"
+                  [class.is-invalid]="campoInvalido('tipoPessoa')">
+                <label [for]="'tipo-pessoa-' + opcao.valor" class="form-check-label">{{ opcao.label }}</label>
+              </div>
+              }
+            </div>
+            <div class="invalid-feedback" [class.d-block]="campoInvalido('tipoPessoa')">Tipo de Pessoa é um campo obrigatório.</div>
+          </div>
+
+          <div class="col-12 col-md-8">
+            <label for="cpf-cnpj" class="form-label fw-semibold required-label text-danger">
+              CPF/CNPJ
               <i class="fa-solid fa-circle-exclamation text-danger help-dot ms-1"></i>
             </label>
             <input
-              id="cpf"
+              id="cpf-cnpj"
               type="text"
               class="form-control"
-              mask="000.000.000-00"
-              formControlName="cpf"
-              [class.is-invalid]="campoInvalido('cpf')">
-            <div class="invalid-feedback">CPF é um campo obrigatório.</div>
+              [mask]="mascaraCpfCnpj"
+              formControlName="cpfCnpj"
+              [class.is-invalid]="campoInvalido('cpfCnpj')">
+            <div class="invalid-feedback">CPF/CNPJ é um campo obrigatório.</div>
           </div>
         </div>
 
@@ -149,6 +171,28 @@
                 formControlName="whatsapp">
               <label for="whatsapp" class="form-check-label fw-semibold">Telefone é Whatsapp</label>
             </div>
+          </div>
+        </div>
+
+        <div class="d-flex align-items-center gap-2 mb-3 mt-4">
+          <span class="d-inline-flex align-items-center justify-content-center rounded bg-primary-subtle text-primary p-2">
+            <i class="fa-solid fa-note-sticky"></i>
+          </span>
+          <div>
+            <div class="fw-semibold">Observação</div>
+            <div class="text-secondary small">Informações adicionais sobre o cliente.</div>
+          </div>
+        </div>
+        <hr>
+
+        <div class="row g-3">
+          <div class="col-12">
+            <label for="observacao" class="form-label fw-semibold">Observação</label>
+            <textarea
+              id="observacao"
+              rows="5"
+              class="form-control"
+              formControlName="observacao"></textarea>
           </div>
         </div>
       </div>

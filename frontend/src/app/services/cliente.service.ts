@@ -14,13 +14,13 @@ export interface ClienteFiltro {
 
   nome?: string;
 
-  cpf?: string;
+  cpfCnpj?: string;
 
 }
 
 export const CLIENTE_CAMPOS_PESQUISA: { campo: keyof ClienteFiltro; label: string; tipo: string }[] = [
   { campo: 'nome', label: 'Nome', tipo: 'string' },
-  { campo: 'cpf', label: 'CPF', tipo: 'long' }
+  { campo: 'cpfCnpj', label: 'CPF/CNPJ', tipo: 'long' }
 ];
 
 @Injectable({
@@ -42,8 +42,8 @@ export class ClienteService {
       params = params.set('nome', filtro.nome.trim());
     }
 
-    if (filtro.cpf != null && filtro.cpf.trim() !== '') {
-      params = params.set('cpf', filtro.cpf.trim());
+    if (filtro.cpfCnpj != null && filtro.cpfCnpj.trim() !== '') {
+      params = params.set('cpfCnpj', filtro.cpfCnpj.trim());
     }
 
     return this.http.get<Cliente[]>(`${this.initConfig.urlBackend}${API_CLIENTES}/pesquisar`, { params });

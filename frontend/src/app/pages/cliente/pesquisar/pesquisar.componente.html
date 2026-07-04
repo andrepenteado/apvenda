@@ -58,7 +58,7 @@
       <div class="card h-100">
         <div class="card-body">
           <div class="text-secondary small">Filtros disponíveis</div>
-          <div class="fs-5 fw-semibold">Nome e CPF</div>
+          <div class="fs-5 fw-semibold">Nome e CPF/CNPJ</div>
         </div>
       </div>
     </div>
@@ -93,14 +93,13 @@
           </div>
           <div class="col-12 col-md">
             <input
-              id="filtro-cpf"
+              id="filtro-cpf-cnpj"
               type="text"
-              name="cpf"
+              name="cpfCnpj"
               class="form-control"
-              mask="000.000.000-00"
-              placeholder="CPF"
-              aria-label="CPF"
-              [(ngModel)]="filtro.cpf">
+              placeholder="CPF/CNPJ"
+              aria-label="CPF/CNPJ"
+              [(ngModel)]="filtro.cpfCnpj">
           </div>
           <div class="col-6 col-md-auto">
             <button type="submit" class="btn btn-primary w-100" title="Pesquisar" aria-label="Pesquisar">
@@ -125,7 +124,8 @@
               <th>Ações</th>
               <th>ID</th>
               <th>Nome</th>
-              <th>CPF</th>
+              <th>Tipo de Pessoa</th>
+              <th>CPF/CNPJ</th>
               <th>Telefone</th>
               <th>Whatsapp?</th>
             </tr>
@@ -153,7 +153,8 @@
                   <div class="record-sub text-secondary small">Cliente</div>
                 </div>
               </td>
-              <td>{{ formatarCpf(cliente.cpf) }}</td>
+              <td>{{ formatarTipoPessoa(cliente.tipoPessoa) }}</td>
+              <td>{{ formatarCpfCnpj(cliente) }}</td>
               <td>{{ cliente.telefone || '-' }}</td>
               <td>{{ cliente.whatsapp ? 'Sim' : 'Não' }}</td>
             </tr>

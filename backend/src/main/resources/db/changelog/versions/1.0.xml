@@ -242,11 +242,15 @@
             <column name="nome" type="VARCHAR">
                 <constraints nullable="false"/>
             </column>
-            <column name="cpf" type="BIGINT">
-                <constraints nullable="false" unique="true" uniqueConstraintName="un_cliente_cpf"/>
+            <column name="tipo_pessoa" type="VARCHAR">
+                <constraints nullable="false"/>
+            </column>
+            <column name="cpf_cnpj" type="BIGINT">
+                <constraints nullable="false" unique="true" uniqueConstraintName="un_cliente_cpf_cnpj"/>
             </column>
             <column name="telefone" type="VARCHAR"/>
             <column name="whatsapp" type="BOOLEAN"/>
+            <column name="observacao" type="TEXT"/>
             <column name="criado_por" type="VARCHAR">
                 <constraints nullable="false"/>
             </column>
@@ -259,8 +263,8 @@
         <createIndex tableName="cliente" indexName="idx_cliente_nome">
             <column name="nome"/>
         </createIndex>
-        <createIndex tableName="cliente" indexName="idx_cliente_cpf">
-            <column name="cpf"/>
+        <createIndex tableName="cliente" indexName="idx_cliente_cpf_cnpj">
+            <column name="cpf_cnpj"/>
         </createIndex>
         <addForeignKeyConstraint
             baseTableName="venda"

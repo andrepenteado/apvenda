@@ -67,7 +67,7 @@ public class ClienteService {
     @Transactional(readOnly = true)
     @Secured(VendaApplication.PERFIL_CAIXA)
     public Iterable<Cliente> pesquisar(ClienteFilter filtro) {
-        LOGGER.info("Pesquisando Clientes com filtro: nome={}, cpf={}", filtro.getNome(), filtro.getCpf());
+        LOGGER.info("Pesquisando Clientes com filtro: nome={}, cpfCnpj={}", filtro.getNome(), filtro.getCpfCnpj());
         return repository.findAll(filtro.toPredicate());
     }
 

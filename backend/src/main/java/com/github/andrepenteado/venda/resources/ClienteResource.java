@@ -63,7 +63,7 @@ public class ClienteResource {
      */
     @GetMapping("/pesquisar")
     public Iterable<Cliente> pesquisar(ClienteFilter filtro) {
-        LOGGER.info("GET /clientes/pesquisar - Pesquisar Clientes: nome={}, cpf={}", filtro.getNome(), filtro.getCpf());
+        LOGGER.info("GET /clientes/pesquisar - Pesquisar Clientes: nome={}, cpfCnpj={}", filtro.getNome(), filtro.getCpfCnpj());
         return service.pesquisar(filtro);
     }
 

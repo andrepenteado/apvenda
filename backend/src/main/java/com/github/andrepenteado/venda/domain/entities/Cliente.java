@@ -5,8 +5,11 @@
  */
 package com.github.andrepenteado.venda.domain.entities;
 
+import com.github.andrepenteado.venda.domain.enums.TipoPessoa;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -35,15 +38,23 @@ public class Cliente implements Serializable {
     @Column(nullable = false)
     private String nome;
 
-    @NotNull(message = "CPF é um campo obrigatório")
-    @Column(nullable = false, unique = true)
-    private Long cpf;
+    @NotNull(message = "Tipo de Pessoa é um campo obrigatório")
+    @Enumerated(EnumType.STRING)
+    @Column(name = "tipo_pessoa", nullable = false)
+    private TipoPessoa tipoPessoa;
+
+    @NotNull(message = "CPF/CNPJ é um campo obrigatório")
+    @Column(name = "cpf_cnpj", nullable = false, unique = true)
+    private Long cpfCnpj;
 
     @Column
     private String telefone;
 
     @Column
     private Boolean whatsapp;
+
+    @Column(columnDefinition = "TEXT")
+    private String observacao;
 
     @Column(name = "criado_por", nullable = false)
     private String criadoPor;
@@ -94,21 +105,39 @@ public class Cliente implements Serializable {
     }
 
     /**
-     * Retorna o CPF do Cliente.
+     * Retorna o tipo de pessoa do Cliente.
      *
-     * @return CPF do Cliente.
+     * @return tipo de pessoa do Cliente.
      */
-    public Long getCpf() {
-        return cpf;
+    public TipoPessoa getTipoPessoa() {
+        return tipoPessoa;
     }
 
     /**
-     * Define o CPF do Cliente.
+     * Define o tipo de pessoa do Cliente.
      *
-     * @param cpf CPF do Cliente.
+     * @param tipoPessoa tipo de pessoa do Cliente.
      */
-    public void setCpf(Long cpf) {
-        this.cpf = cpf;
+    public void setTipoPessoa(TipoPessoa tipoPessoa) {
+        this.tipoPessoa = tipoPessoa;
+    }
+
+    /**
+     * Retorna o CPF/CNPJ do Cliente.
+     *
+     * @return CPF/CNPJ do Cliente.
+     */
+    public Long getCpfCnpj() {
+        return cpfCnpj;
+    }
+
+    /**
+     * Define o CPF/CNPJ do Cliente.
+     *
+     * @param cpfCnpj CPF/CNPJ do Cliente.
+     */
+    public void setCpfCnpj(Long cpfCnpj) {
+        this.cpfCnpj = cpfCnpj;
     }
 
     /**
@@ -145,6 +174,24 @@ public class Cliente implements Serializable {
      */
     public void setWhatsapp(Boolean whatsapp) {
         this.whatsapp = whatsapp;
+    }
+
+    /**
+     * Retorna a observação do Cliente.
+     *
+     * @return observação do Cliente.
+     */
+    public String getObservacao() {
+        return observacao;
+    }
+
+    /**
+     * Define a observação do Cliente.
+     *
+     * @param observacao observação do Cliente.
+     */
+    public void setObservacao(String observacao) {
+        this.observacao = observacao;
     }
 
     /**
@@ -256,7 +303,8 @@ public class Cliente implements Serializable {
         return "Cliente{" +
             "id=" + id +
             ", nome='" + nome + '\'' +
-            ", cpf=" + cpf +
+            ", tipoPessoa=" + tipoPessoa +
+            ", cpfCnpj=" + cpfCnpj +
             '}';
     }
 

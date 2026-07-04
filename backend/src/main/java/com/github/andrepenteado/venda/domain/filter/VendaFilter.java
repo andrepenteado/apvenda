@@ -141,7 +141,7 @@ public class VendaFilter {
         }
 
         if (cpfCliente != null) {
-            builder.and(venda.cliente.cpf.eq(cpfCliente));
+            builder.and(venda.cliente.cpfCnpj.eq(cpfCliente));
         }
 
         if (Boolean.TRUE.equals(consumidor)) {

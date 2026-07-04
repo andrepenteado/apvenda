@@ -16,7 +16,7 @@ public class ClienteFilter {
 
     private String nome;
 
-    private Long cpf;
+    private Long cpfCnpj;
 
     /**
      * Retorna o nome usado na pesquisa de Cliente.
@@ -37,21 +37,21 @@ public class ClienteFilter {
     }
 
     /**
-     * Retorna o CPF usado na pesquisa de Cliente.
+     * Retorna o CPF/CNPJ usado na pesquisa de Cliente.
      *
-     * @return CPF usado na pesquisa.
+     * @return CPF/CNPJ usado na pesquisa.
      */
-    public Long getCpf() {
-        return cpf;
+    public Long getCpfCnpj() {
+        return cpfCnpj;
     }
 
     /**
-     * Define o CPF usado na pesquisa de Cliente.
+     * Define o CPF/CNPJ usado na pesquisa de Cliente.
      *
-     * @param cpf CPF usado na pesquisa.
+     * @param cpfCnpj CPF/CNPJ usado na pesquisa.
      */
-    public void setCpf(Long cpf) {
-        this.cpf = cpf;
+    public void setCpfCnpj(Long cpfCnpj) {
+        this.cpfCnpj = cpfCnpj;
     }
 
     /**
@@ -67,8 +67,8 @@ public class ClienteFilter {
             builder.and(cliente.nome.containsIgnoreCase(nome.trim()));
         }
 
-        if (cpf != null) {
-            builder.and(cliente.cpf.eq(cpf));
+        if (cpfCnpj != null) {
+            builder.and(cliente.cpfCnpj.eq(cpfCnpj));
         }
 
         return builder;
