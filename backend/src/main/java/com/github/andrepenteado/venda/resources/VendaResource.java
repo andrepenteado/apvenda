@@ -6,9 +6,10 @@
 package com.github.andrepenteado.venda.resources;
 
 import com.github.andrepenteado.venda.domain.dto.DashboardResponse;
-import com.github.andrepenteado.venda.domain.dto.VendaPesquisaResponse;
 import com.github.andrepenteado.venda.domain.dto.VendaRequest;
 import com.github.andrepenteado.venda.domain.dto.VendaResponse;
+import com.github.andrepenteado.venda.domain.dto.datatables.VendaDatatablesRequest;
+import com.github.andrepenteado.venda.domain.dto.datatables.VendaDatatablesResponse;
 import com.github.andrepenteado.venda.domain.filter.VendaFilter;
 import com.github.andrepenteado.venda.services.VendaService;
 import io.micrometer.observation.annotation.Observed;
@@ -21,8 +22,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
-import java.util.List;
 
 /**
  * Resource REST de Venda (PDV).
@@ -70,27 +69,17 @@ public class VendaResource {
     }
 
     /**
-     * Lista todas as vendas.
+     * Consulta paginada do grid de Vendas (server-side processing do
+     * DataTables), combinando o filtro da tela com a busca global do grid e
+     * devolvendo os agregados do resultado filtrado.
      *
-     * @return lista de vendas.
+     * @param request request do DataTables e filtro da tela.
+     * @return página de vendas, contadores e agregados.
      */
-    @GetMapping
-    public List<VendaPesquisaResponse> listar() {
-        LOGGER.info("GET /vendas - Listar Vendas");
-        return service.listar();
-    }
-
-    /**
-     * Pesquisa vendas pelos filtros informados.
-     *
-     * @param filtro filtros de pesquisa.
-     * @return vendas encontradas.
-     */
-    @GetMapping("/pesquisar")
-    public List<VendaPesquisaResponse> pesquisar(VendaFilter filtro) {
-        LOGGER.info("GET /vendas/pesquisar - Pesquisar Vendas: idVenda={}, dataInicio={}, dataFinal={}, cpfCliente={}, consumidor={}",
-            filtro.getIdVenda(), filtro.getDataInicio(), filtro.getDataFinal(), filtro.getCpfCliente(), filtro.getConsumidor());
-        return service.pesquisar(filtro);
+    @PostMapping("/datatables")
+    public VendaDatatablesResponse datatables(@RequestBody VendaDatatablesRequest request) {
+        LOGGER.info("POST /vendas/datatables - Consulta paginada de Vendas");
+        return service.datatables(request.datatables(), request.filtro() != null ? request.filtro() : new VendaFilter());
     }
 
     /**

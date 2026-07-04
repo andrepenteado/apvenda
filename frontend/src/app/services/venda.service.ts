@@ -5,6 +5,7 @@
  */
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
+import { DatatablesRequest, DatatablesResponse } from '@andre.penteado/ngx-apcore';
 import { Observable } from 'rxjs';
 import { API_PRODUTOS, API_VENDAS } from '../config/api';
 import { INIT_CONFIG, InitConfig } from '../config/init-config.token';
@@ -69,6 +70,15 @@ export interface VendaPesquisa {
   valorPago: number | null;
 }
 
+/**
+ * Resposta server-side do grid de vendas: página do protocolo DataTables mais
+ * os agregados do resultado filtrado inteiro (cards de resumo da tela).
+ */
+export interface VendaDatatablesResponse extends DatatablesResponse<VendaPesquisa> {
+  valorTotalGeral: number;
+  valorPagoGeral: number;
+}
+
 export interface VendaDia {
   data: string;
   total: number;
@@ -121,34 +131,11 @@ export class VendaService {
     return this.http.post<VendaResponse>(`${this.initConfig.urlBackend}${API_VENDAS}`, request);
   }
 
-  listar(): Observable<VendaPesquisa[]> {
-    return this.http.get<VendaPesquisa[]>(`${this.initConfig.urlBackend}${API_VENDAS}`);
-  }
-
-  pesquisar(filtro: VendaFiltro): Observable<VendaPesquisa[]> {
-    let params = new HttpParams();
-
-    if (filtro.idVenda != null && String(filtro.idVenda).trim() !== '') {
-      params = params.set('idVenda', String(filtro.idVenda).trim());
-    }
-
-    if (filtro.dataInicio != null && filtro.dataInicio !== '') {
-      params = params.set('dataInicio', filtro.dataInicio);
-    }
-
-    if (filtro.dataFinal != null && filtro.dataFinal !== '') {
-      params = params.set('dataFinal', filtro.dataFinal);
-    }
-
-    if (filtro.cpfCliente != null && filtro.cpfCliente.trim() !== '') {
-      params = params.set('cpfCliente', filtro.cpfCliente.trim());
-    }
-
-    if (filtro.consumidor === true) {
-      params = params.set('consumidor', 'true');
-    }
-
-    return this.http.get<VendaPesquisa[]>(`${this.initConfig.urlBackend}${API_VENDAS}/pesquisar`, { params });
+  datatables(datatables: DatatablesRequest, filtro: VendaFiltro): Observable<VendaDatatablesResponse> {
+    return this.http.post<VendaDatatablesResponse>(
+      `${this.initConfig.urlBackend}${API_VENDAS}/datatables`,
+      { datatables, filtro: this.normalizarFiltro(filtro) }
+    );
   }
 
   buscar(id: number): Observable<VendaResponse> {
@@ -161,6 +148,20 @@ export class VendaService {
 
   dashboard(): Observable<DashboardResponse> {
     return this.http.get<DashboardResponse>(`${this.initConfig.urlBackend}${API_VENDAS}/dashboard`);
+  }
+
+  /**
+   * Normaliza o filtro antes do envio: strings vazias viram null para o
+   * backend não receber valores em branco.
+   */
+  private normalizarFiltro(filtro: VendaFiltro): VendaFiltro {
+    return {
+      idVenda: filtro.idVenda != null && String(filtro.idVenda).trim() !== '' ? String(filtro.idVenda).trim() : undefined,
+      dataInicio: filtro.dataInicio || undefined,
+      dataFinal: filtro.dataFinal || undefined,
+      cpfCliente: filtro.cpfCliente != null && filtro.cpfCliente.trim() !== '' ? filtro.cpfCliente.trim() : undefined,
+      consumidor: filtro.consumidor === true ? true : undefined
+    };
   }
 
 }

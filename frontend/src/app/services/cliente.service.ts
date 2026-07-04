@@ -5,6 +5,7 @@
  */
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
+import { DatatablesRequest, DatatablesResponse } from '@andre.penteado/ngx-apcore';
 import { Observable } from 'rxjs';
 import { API_CLIENTES } from '../config/api';
 import { INIT_CONFIG, InitConfig } from '../config/init-config.token';
@@ -31,8 +32,16 @@ export class ClienteService {
   private readonly http: HttpClient = inject(HttpClient);
   private readonly initConfig: InitConfig = inject(INIT_CONFIG);
 
-  listar(): Observable<Cliente[]> {
-    return this.http.get<Cliente[]>(`${this.initConfig.urlBackend}${API_CLIENTES}`);
+  datatables(datatables: DatatablesRequest, filtro: ClienteFiltro): Observable<DatatablesResponse<Cliente>> {
+    // Strings vazias viram undefined para o backend não receber valores em branco.
+    const filtroNormalizado: ClienteFiltro = {
+      nome: filtro.nome != null && filtro.nome.trim() !== '' ? filtro.nome.trim() : undefined,
+      cpfCnpj: filtro.cpfCnpj != null && filtro.cpfCnpj.trim() !== '' ? filtro.cpfCnpj.trim() : undefined
+    };
+    return this.http.post<DatatablesResponse<Cliente>>(
+      `${this.initConfig.urlBackend}${API_CLIENTES}/datatables`,
+      { datatables, filtro: filtroNormalizado }
+    );
   }
 
   pesquisar(filtro: ClienteFiltro): Observable<Cliente[]> {

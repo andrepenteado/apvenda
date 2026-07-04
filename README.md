@@ -220,3 +220,15 @@ A tela **Vendas** (menu `Vendas`, rota `/vendas`) consulta as vendas registradas
 - **Consultar**: abre a página somente leitura `/vendas/consultar/:id` com os dados da venda (data/hora, cliente, forma de pagamento e valor pago) e a tabela de itens vendidos; o único botão de ação é **Imprimir**, que abre o modal do componente `venda-imprimir`.
 - **Imprimir**: busca a venda (`GET /vendas/{id}`) e abre o modal de impressão direto na grid, sem navegar, reutilizando o componente `venda-imprimir` do PDV.
 - **Estorno**: mediante confirmação (opção padrão **Não**), exclui a `Venda`, os `ItemVenda` e o `Receber` e **devolve as quantidades vendidas ao estoque**, tudo na mesma transação.
+
+## Grids com paginação server-side
+
+Os grids de **Produtos**, **Vendas** e **Clientes** usam o **server-side processing do DataTables** (suporte na lib `ngx-apcore`: `Datatables.serverSide(...)` e `Datatables.aoClicarAcao(...)`): o grid pede apenas a página atual (`start`/`length`, busca global e ordenação) e o backend responde com a página e os contadores — nada de carregar milhares de registros no navegador.
+
+- **Endpoints**: `POST /produtos/datatables`, `POST /vendas/datatables` e `POST /clientes/datatables`, com body `{ datatables, filtro }` (o request do protocolo DataTables + o filtro da tela). A paginação usa `QuerydslPredicateExecutor.findAll(Predicate, Pageable)`; a ordenação é validada por **whitelist** de colunas (nunca aplica a string do cliente direto no `Sort`).
+- **Busca global do grid**: produto pesquisa em nome, código de barras (exato), categoria e marca; venda pesquisa em nome do cliente e número da venda; cliente pesquisa em nome, telefone e CPF/CNPJ (exato).
+- **Renderização**: em server-side as linhas são HTML gerado pelo DataTables (`columns[].render`), não template Angular; os botões de ação usam `data-acao`/`data-id` com listener delegado (`Datatables.aoClicarAcao`).
+- **Cards de resumo de Vendas**: os agregados (valor total e valor pago) vêm do backend calculados sobre o resultado filtrado inteiro (`VendaDatatablesResponse`), não somando a página.
+- **Tamanhos de página**: fixos (10/25/50/100) — não há "mostrar todos". Exportações (Excel/PDF/Imprimir) exportam apenas a página visível.
+- Os grids pequenos (marcas e categorias) continuam com paginação client-side (`Datatables.config`).
+- **Filtros persistentes**: todas as telas de pesquisa guardam o filtro aplicado na sessão do navegador (`FiltroSessaoService`, `sessionStorage`): ao navegar para outra tela (ou para o cadastro) e voltar, o filtro é restaurado e a pesquisa refeita; o filtro só é descartado quando o usuário limpa/muda ou fecha a aba.

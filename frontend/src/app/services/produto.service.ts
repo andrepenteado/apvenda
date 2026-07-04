@@ -3,8 +3,9 @@
  * Criado em: 01/07/2026 -03
  * Observação: arquivo criado com ajuda da IA.
  */
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
+import { DatatablesRequest, DatatablesResponse } from '@andre.penteado/ngx-apcore';
 import { Observable } from 'rxjs';
 import { API_PRODUTOS } from '../config/api';
 import { INIT_CONFIG, InitConfig } from '../config/init-config.token';
@@ -44,38 +45,11 @@ export class ProdutoService {
   private readonly http: HttpClient = inject(HttpClient);
   private readonly initConfig: InitConfig = inject(INIT_CONFIG);
 
-  listar(): Observable<Produto[]> {
-    return this.http.get<Produto[]>(`${this.initConfig.urlBackend}${API_PRODUTOS}`);
-  }
-
-  pesquisar(filtro: ProdutoFiltro): Observable<Produto[]> {
-    let params = new HttpParams();
-
-    if (filtro.nome != null && filtro.nome.trim() !== '') {
-      params = params.set('nome', filtro.nome.trim());
-    }
-
-    if (filtro.codigoBarras != null && filtro.codigoBarras.trim() !== '') {
-      params = params.set('codigoBarras', filtro.codigoBarras.trim());
-    }
-
-    if (filtro.categoria != null) {
-      params = params.set('categoria', String(filtro.categoria));
-    }
-
-    if (filtro.marca != null) {
-      params = params.set('marca', String(filtro.marca));
-    }
-
-    if (filtro.unidade != null) {
-      params = params.set('unidade', String(filtro.unidade));
-    }
-
-    if (filtro.ativo != null) {
-      params = params.set('ativo', String(filtro.ativo));
-    }
-
-    return this.http.get<Produto[]>(`${this.initConfig.urlBackend}${API_PRODUTOS}/pesquisar`, { params });
+  datatables(datatables: DatatablesRequest, filtro: ProdutoFiltro): Observable<DatatablesResponse<Produto>> {
+    return this.http.post<DatatablesResponse<Produto>>(
+      `${this.initConfig.urlBackend}${API_PRODUTOS}/datatables`,
+      { datatables, filtro }
+    );
   }
 
   buscar(id: number): Observable<Produto> {

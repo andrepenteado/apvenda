@@ -5,6 +5,8 @@
  */
 package com.github.andrepenteado.venda.resources;
 
+import com.github.andrepenteado.venda.domain.dto.datatables.DatatablesResponse;
+import com.github.andrepenteado.venda.domain.dto.datatables.ProdutoDatatablesRequest;
 import com.github.andrepenteado.venda.domain.entities.Produto;
 import com.github.andrepenteado.venda.domain.filter.ProdutoFilter;
 import com.github.andrepenteado.venda.services.ProdutoService;
@@ -46,34 +48,16 @@ public class ProdutoResource {
     }
 
     /**
-     * Lista todos os Produtos.
+     * Consulta paginada do grid de Produtos (server-side processing do
+     * DataTables), combinando o filtro da tela com a busca global do grid.
      *
-     * @return lista de Produtos.
+     * @param request request do DataTables e filtro da tela.
+     * @return página de Produtos e contadores.
      */
-    @GetMapping
-    public List<Produto> listar() {
-        LOGGER.info("GET /produtos - Listar Produtos");
-        return service.listar();
-    }
-
-    /**
-     * Pesquisa Produtos pelos filtros informados.
-     *
-     * @param filtro filtros de pesquisa.
-     * @return Produtos encontrados.
-     */
-    @GetMapping("/pesquisar")
-    public Iterable<Produto> pesquisar(ProdutoFilter filtro) {
-        LOGGER.info(
-            "GET /produtos/pesquisar - Pesquisar Produtos: nome={}, codigoBarras={}, categoria={}, marca={}, unidade={}, ativo={}",
-            filtro.getNome(),
-            filtro.getCodigoBarras(),
-            filtro.getCategoria(),
-            filtro.getMarca(),
-            filtro.getUnidade(),
-            filtro.getAtivo()
-        );
-        return service.pesquisar(filtro);
+    @PostMapping("/datatables")
+    public DatatablesResponse<Produto> datatables(@RequestBody ProdutoDatatablesRequest request) {
+        LOGGER.info("POST /produtos/datatables - Consulta paginada de Produtos");
+        return service.datatables(request.datatables(), request.filtro() != null ? request.filtro() : new ProdutoFilter());
     }
 
     /**

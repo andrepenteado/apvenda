@@ -7,19 +7,27 @@ package com.github.andrepenteado.venda.services;
 
 import br.unesp.fc.andrepenteado.core.web.services.SecurityService;
 import com.github.andrepenteado.venda.VendaApplication;
+import com.github.andrepenteado.venda.domain.dto.datatables.DatatablesRequest;
+import com.github.andrepenteado.venda.domain.dto.datatables.DatatablesResponse;
 import com.github.andrepenteado.venda.domain.entities.Cliente;
+import com.github.andrepenteado.venda.domain.entities.QCliente;
 import com.github.andrepenteado.venda.domain.filter.ClienteFilter;
 import com.github.andrepenteado.venda.domain.repositories.ClienteRepository;
+import com.github.andrepenteado.venda.services.datatables.DatatablesSupport;
+import com.querydsl.core.BooleanBuilder;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
-import java.util.List;
+import java.util.Map;
 
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.HttpStatus.NOT_FOUND;
@@ -31,6 +39,18 @@ import static org.springframework.http.HttpStatus.NOT_FOUND;
 public class ClienteService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ClienteService.class);
+
+    /**
+     * Whitelist de ordenação do grid: coluna do DataTables → propriedade da entidade.
+     */
+    private static final Map<String, String> COLUNAS_ORDENAVEIS = Map.of(
+        "id", "id",
+        "nome", "nome",
+        "tipoPessoa", "tipoPessoa",
+        "cpfCnpj", "cpfCnpj",
+        "telefone", "telefone",
+        "whatsapp", "whatsapp"
+    );
 
     private final ClienteRepository repository;
     private final SecurityService securityService;
@@ -47,15 +67,37 @@ public class ClienteService {
     }
 
     /**
-     * Lista todos os Clientes.
+     * Consulta paginada do grid de Clientes (server-side processing do
+     * DataTables): aplica o filtro da tela, a busca global do grid e a
+     * ordenação, devolvendo apenas a página solicitada.
      *
-     * @return lista de Clientes.
+     * @param request request do protocolo DataTables.
+     * @param filtro filtro da tela de pesquisa.
+     * @return página de Clientes e contadores.
      */
     @Transactional(readOnly = true)
     @Secured(VendaApplication.PERFIL_CAIXA)
-    public List<Cliente> listar() {
-        LOGGER.info("Listando Clientes");
-        return repository.findAll();
+    public DatatablesResponse<Cliente> datatables(DatatablesRequest request, ClienteFilter filtro) {
+        LOGGER.info("Consulta datatables de Clientes: start={}, length={}", request.start(), request.length());
+
+        BooleanBuilder predicate = new BooleanBuilder(filtro != null ? filtro.toPredicate() : null);
+
+        String termo = DatatablesSupport.termoBusca(request);
+        if (termo != null) {
+            QCliente cliente = QCliente.cliente;
+            BooleanBuilder busca = new BooleanBuilder()
+                .or(cliente.nome.containsIgnoreCase(termo))
+                .or(cliente.telefone.contains(termo));
+            if (termo.matches("\\d{1,18}")) {
+                busca.or(cliente.cpfCnpj.eq(Long.valueOf(termo)));
+            }
+            predicate.and(busca);
+        }
+
+        Pageable pageable = DatatablesSupport.toPageable(request, COLUNAS_ORDENAVEIS, Sort.by("nome"));
+        Page<Cliente> pagina = repository.findAll(predicate, pageable);
+
+        return new DatatablesResponse<>(request.draw(), repository.count(), pagina.getTotalElements(), pagina.getContent());
     }
 
     /**

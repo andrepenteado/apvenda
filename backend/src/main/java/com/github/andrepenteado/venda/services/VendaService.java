@@ -14,9 +14,13 @@ import com.github.andrepenteado.venda.domain.dto.VendaConsolidada;
 import com.github.andrepenteado.venda.domain.dto.VendaPesquisaResponse;
 import com.github.andrepenteado.venda.domain.dto.VendaRequest;
 import com.github.andrepenteado.venda.domain.dto.VendaResponse;
+import com.github.andrepenteado.venda.domain.dto.datatables.DatatablesRequest;
+import com.github.andrepenteado.venda.domain.dto.datatables.VendaDatatablesResponse;
 import com.github.andrepenteado.venda.domain.entities.Cliente;
 import com.github.andrepenteado.venda.domain.entities.ItemVenda;
 import com.github.andrepenteado.venda.domain.entities.Produto;
+import com.github.andrepenteado.venda.domain.entities.QReceber;
+import com.github.andrepenteado.venda.domain.entities.QVenda;
 import com.github.andrepenteado.venda.domain.entities.Receber;
 import com.github.andrepenteado.venda.domain.entities.Venda;
 import com.github.andrepenteado.venda.domain.enums.FormaPagamento;
@@ -26,8 +30,15 @@ import com.github.andrepenteado.venda.domain.repositories.ItemVendaRepository;
 import com.github.andrepenteado.venda.domain.repositories.ProdutoRepository;
 import com.github.andrepenteado.venda.domain.repositories.ReceberRepository;
 import com.github.andrepenteado.venda.domain.repositories.VendaRepository;
+import com.github.andrepenteado.venda.services.datatables.DatatablesSupport;
+import com.querydsl.core.BooleanBuilder;
+import com.querydsl.jpa.impl.JPAQueryFactory;
+import jakarta.persistence.EntityManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -57,12 +68,24 @@ public class VendaService {
 
     private static final BigDecimal CEM = BigDecimal.valueOf(100);
 
+    /**
+     * Whitelist de ordenação do grid: coluna do DataTables → propriedade da entidade.
+     */
+    private static final Map<String, String> COLUNAS_ORDENAVEIS = Map.of(
+        "id", "id",
+        "dataHora", "dataHora",
+        "nomeCliente", "cliente.nome",
+        "cpfCliente", "cliente.cpfCnpj",
+        "total", "total"
+    );
+
     private final VendaRepository repository;
     private final ProdutoRepository produtoRepository;
     private final ClienteRepository clienteRepository;
     private final ItemVendaRepository itemVendaRepository;
     private final ReceberRepository receberRepository;
     private final SecurityService securityService;
+    private final EntityManager entityManager;
 
     /**
      * Cria o serviço de Venda.
@@ -73,16 +96,19 @@ public class VendaService {
      * @param itemVendaRepository repositório de ItemVenda.
      * @param receberRepository repositório de Receber.
      * @param securityService serviço de segurança.
+     * @param entityManager entity manager para consultas de agregação QueryDSL.
      */
     public VendaService(VendaRepository repository, ProdutoRepository produtoRepository,
                         ClienteRepository clienteRepository, ItemVendaRepository itemVendaRepository,
-                        ReceberRepository receberRepository, SecurityService securityService) {
+                        ReceberRepository receberRepository, SecurityService securityService,
+                        EntityManager entityManager) {
         this.repository = repository;
         this.produtoRepository = produtoRepository;
         this.clienteRepository = clienteRepository;
         this.itemVendaRepository = itemVendaRepository;
         this.receberRepository = receberRepository;
         this.securityService = securityService;
+        this.entityManager = entityManager;
     }
 
     /**
@@ -138,30 +164,55 @@ public class VendaService {
     }
 
     /**
-     * Pesquisa vendas pelo filtro informado.
+     * Consulta paginada do grid de Vendas (server-side processing do
+     * DataTables): aplica o filtro da tela, a busca global do grid e a
+     * ordenação, devolvendo a página solicitada e os agregados (valor total e
+     * valor pago) do resultado filtrado inteiro para os cards de resumo.
      *
-     * @param filtro filtro de pesquisa.
-     * @return vendas encontradas.
+     * @param request request do protocolo DataTables.
+     * @param filtro filtro da tela de pesquisa.
+     * @return página de vendas, contadores e agregados.
      */
     @Transactional(readOnly = true)
     @Secured(VendaApplication.PERFIL_CAIXA)
-    public List<VendaPesquisaResponse> pesquisar(VendaFilter filtro) {
-        LOGGER.info("Pesquisando vendas");
-        List<VendaPesquisaResponse> vendas = new ArrayList<>();
-        repository.findAll(filtro.toPredicate()).forEach(venda -> vendas.add(toResponse(venda)));
-        return vendas;
-    }
+    public VendaDatatablesResponse datatables(DatatablesRequest request, VendaFilter filtro) {
+        LOGGER.info("Consulta datatables de Vendas: start={}, length={}", request.start(), request.length());
 
-    /**
-     * Lista todas as vendas.
-     *
-     * @return todas as vendas.
-     */
-    @Transactional(readOnly = true)
-    @Secured(VendaApplication.PERFIL_CAIXA)
-    public List<VendaPesquisaResponse> listar() {
-        LOGGER.info("Listando todas as vendas");
-        return repository.findAll().stream().map(this::toResponse).toList();
+        QVenda venda = QVenda.venda;
+        BooleanBuilder predicate = new BooleanBuilder(filtro != null ? filtro.toPredicate() : null);
+
+        String termo = DatatablesSupport.termoBusca(request);
+        if (termo != null) {
+            BooleanBuilder busca = new BooleanBuilder().or(venda.cliente.nome.containsIgnoreCase(termo));
+            if (termo.matches("\\d{1,18}")) {
+                busca.or(venda.id.eq(Long.valueOf(termo)));
+            }
+            predicate.and(busca);
+        }
+
+        // Padrão: vendas mais recentes primeiro.
+        Pageable pageable = DatatablesSupport.toPageable(request, COLUNAS_ORDENAVEIS, Sort.by(Sort.Direction.DESC, "id"));
+        Page<Venda> pagina = repository.findAll(predicate, pageable);
+        List<VendaPesquisaResponse> vendas = pagina.getContent().stream().map(this::toResponse).toList();
+
+        // Agregados do resultado filtrado inteiro (não apenas da página), no banco.
+        JPAQueryFactory query = new JPAQueryFactory(entityManager);
+        QReceber receber = QReceber.receber;
+        BigDecimal valorTotalGeral = query.select(venda.total.sum()).from(venda).where(predicate).fetchOne();
+        BigDecimal valorPagoGeral = query.select(receber.valorPago.sum())
+            .from(venda)
+            .join(venda.recebimentos, receber)
+            .where(predicate)
+            .fetchOne();
+
+        return new VendaDatatablesResponse(
+            request.draw(),
+            repository.count(),
+            pagina.getTotalElements(),
+            vendas,
+            valorTotalGeral != null ? valorTotalGeral : BigDecimal.ZERO,
+            valorPagoGeral != null ? valorPagoGeral : BigDecimal.ZERO
+        );
     }
 
     /**

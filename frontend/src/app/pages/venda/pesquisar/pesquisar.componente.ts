@@ -8,12 +8,19 @@ import { ChangeDetectorRef, Component, inject, OnDestroy, OnInit, ChangeDetectio
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { NgxMaskDirective, provideNgxMask } from 'ngx-mask';
-import { Datatables, DecoracaoMensagem, ExibirMensagemService } from '@andre.penteado/ngx-apcore';
-import { NgxUiLoaderModule, NgxUiLoaderService } from 'ngx-ui-loader';
+import { Datatables, DatatablesRequest, DecoracaoMensagem, ExibirMensagemService } from '@andre.penteado/ngx-apcore';
+import { ConfigColumns } from 'datatables.net';
+import { Observable, tap } from 'rxjs';
 import Swal from 'sweetalert2';
 import { FormaPagamento, FormaPagamentoLabels } from '../../../domain/enums/forma-pagamento';
-import { VendaFiltro, VendaPesquisa, VendaResponse, VendaService } from '../../../services/venda.service';
+import { FiltroSessaoService } from '../../../services/filtro-sessao.service';
+import { VendaDatatablesResponse, VendaFiltro, VendaResponse, VendaService } from '../../../services/venda.service';
 import { ImprimirVendaComponente } from '../imprimir/imprimir.componente';
+
+const NUMERO = new Intl.NumberFormat('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const DATA_HORA = new Intl.DateTimeFormat('pt-BR', {
+  day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit'
+});
 
 @Component({
   selector: 'venda-pesquisar',
@@ -21,7 +28,6 @@ import { ImprimirVendaComponente } from '../imprimir/imprimir.componente';
     CommonModule,
     FormsModule,
     NgxMaskDirective,
-    NgxUiLoaderModule,
     RouterLink,
     ImprimirVendaComponente
   ],
@@ -31,45 +37,30 @@ import { ImprimirVendaComponente } from '../imprimir/imprimir.componente';
 })
 export class PesquisarComponente implements OnInit, OnDestroy {
 
-  vendas: VendaPesquisa[] = [];
   filtro: VendaFiltro = {};
-  exibirTabela = true;
+  totalListado = 0;
+  valorTotalListado = 0;
+  valorPagoListado = 0;
 
   impressaoAberta = false;
   vendaImpressao?: VendaResponse;
 
-  private readonly loaderId = 'venda-pesquisar';
   private readonly tabelaId = '#datatables-pesquisar-venda';
+  private readonly filtroChave = 'venda';
   private readonly service: VendaService = inject(VendaService);
+  private readonly filtroSessao: FiltroSessaoService = inject(FiltroSessaoService);
   private readonly router: Router = inject(Router);
   private readonly changeDetectorRef: ChangeDetectorRef = inject(ChangeDetectorRef);
-  private readonly uiLoaderService: NgxUiLoaderService = inject(NgxUiLoaderService);
   private readonly mensagemService: ExibirMensagemService = inject(ExibirMensagemService);
 
-  get valorTotalListado(): number {
-    return this.vendas.reduce((soma, venda) => soma + Number(venda.total ?? 0), 0);
-  }
-
-  get valorPagoListado(): number {
-    return this.vendas.reduce((soma, venda) => soma + Number(venda.valorPago ?? 0), 0);
-  }
-
   ngOnInit(): void {
-    this.listar();
+    // Restaura o filtro da sessão: o primeiro draw do grid já pesquisa com ele.
+    this.filtro = this.filtroSessao.carregar(this.filtroChave, {});
+    this.inicializarDataTable();
   }
 
   ngOnDestroy(): void {
     this.destruirDataTable();
-  }
-
-  listar(): void {
-    this.uiLoaderService.startLoader(this.loaderId);
-    this.service.listar().subscribe({
-      next: vendas => {
-        this.atualizarGrid(vendas);
-      },
-      error: () => this.uiLoaderService.stopLoader(this.loaderId)
-    });
   }
 
   pesquisar(): void {
@@ -82,18 +73,38 @@ export class PesquisarComponente implements OnInit, OnDestroy {
       return;
     }
 
-    this.executarPesquisa();
+    this.filtroSessao.salvar(this.filtroChave, this.filtro);
+    this.recarregar();
   }
 
   limparFiltros(): void {
+    this.filtroSessao.limpar(this.filtroChave);
     this.filtro = {};
-    this.listar();
+    this.recarregar();
   }
 
-  estornar(venda: VendaPesquisa): void {
+  consultar(id: number): void {
+    this.router.navigate(['/vendas/consultar', id]);
+  }
+
+  imprimir(id: number): void {
+    this.service.buscar(id).subscribe({
+      next: venda => {
+        this.vendaImpressao = venda;
+        this.impressaoAberta = true;
+        this.changeDetectorRef.detectChanges();
+      }
+    });
+  }
+
+  fecharImpressao(): void {
+    this.impressaoAberta = false;
+  }
+
+  estornar(id: number): void {
     Swal.fire({
       title: 'Estornar venda',
-      html: `Estornar a <b>Venda #${venda.id}</b>?<br>A venda, os itens e o financeiro serão excluídos e o estoque será devolvido.`,
+      html: `Estornar a <b>Venda #${id}</b>?<br>A venda, os itens e o financeiro serão excluídos e o estoque será devolvido.`,
       icon: 'warning',
       showCancelButton: true,
       confirmButtonText: '<i class="fa-solid fa-check fa-lg"></i> Sim, estornar',
@@ -103,51 +114,17 @@ export class PesquisarComponente implements OnInit, OnDestroy {
       if (!resultado.isConfirmed) {
         return;
       }
-      this.uiLoaderService.startLoader(this.loaderId);
-      this.service.estornar(venda.id).subscribe({
+      this.service.estornar(id).subscribe({
         next: () => {
           this.mensagemService.showMessage(
-            `Venda #${venda.id} estornada com sucesso.`,
+            `Venda #${id} estornada com sucesso.`,
             'Vendas',
             DecoracaoMensagem.SUCESSO
           );
           this.recarregar();
-        },
-        error: () => this.uiLoaderService.stopLoader(this.loaderId)
+        }
       });
     });
-  }
-
-  consultar(venda: VendaPesquisa): void {
-    this.router.navigate(['/vendas/consultar', venda.id]);
-  }
-
-  imprimir(venda: VendaPesquisa): void {
-    this.uiLoaderService.startLoader(this.loaderId);
-    this.service.buscar(venda.id).subscribe({
-      next: vendaCompleta => {
-        this.vendaImpressao = vendaCompleta;
-        this.impressaoAberta = true;
-        this.uiLoaderService.stopLoader(this.loaderId);
-      },
-      error: () => this.uiLoaderService.stopLoader(this.loaderId)
-    });
-  }
-
-  fecharImpressao(): void {
-    this.impressaoAberta = false;
-  }
-
-  formatarCpf(cpf: number | null | undefined): string {
-    if (cpf == null) {
-      return '-';
-    }
-    const digitos = String(cpf).padStart(11, '0');
-    return digitos.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
-  }
-
-  formaPagamentoLabel(formaPagamento: FormaPagamento | null): string {
-    return formaPagamento ? (FormaPagamentoLabels[formaPagamento] ?? formaPagamento) : '-';
   }
 
   private filtroVazio(): boolean {
@@ -158,28 +135,34 @@ export class PesquisarComponente implements OnInit, OnDestroy {
       && this.filtro.consumidor !== true;
   }
 
-  private executarPesquisa(): void {
-    this.uiLoaderService.startLoader(this.loaderId);
-    this.service.pesquisar(this.filtro).subscribe({
-      next: vendas => {
-        this.atualizarGrid(vendas);
-      },
-      error: () => this.uiLoaderService.stopLoader(this.loaderId)
-    });
-  }
-
-  private recarregar(): void {
-    if (this.filtroVazio()) {
-      this.listar();
-    } else {
-      this.executarPesquisa();
-    }
+  /**
+   * Consulta server-side do grid: o closure lê o filtro atual da tela a cada
+   * draw; os agregados dos cards de resumo vêm calculados do backend sobre o
+   * resultado filtrado inteiro (não apenas a página).
+   */
+  private consultarGrid(request: DatatablesRequest): Observable<VendaDatatablesResponse> {
+    return this.service.datatables(request, this.filtro).pipe(
+      tap(resposta => {
+        this.totalListado = resposta.recordsFiltered;
+        this.valorTotalListado = resposta.valorTotalGeral;
+        this.valorPagoListado = resposta.valorPagoGeral;
+        this.changeDetectorRef.detectChanges();
+      })
+    );
   }
 
   private inicializarDataTable(): void {
     setTimeout(() => {
-      $(this.tabelaId).DataTable(Datatables.config);
-      this.uiLoaderService.stopLoader(this.loaderId);
+      $(this.tabelaId).DataTable(Datatables.serverSide(request => this.consultarGrid(request), this.colunas()));
+      Datatables.aoClicarAcao(this.tabelaId, (acao, id) => {
+        if (acao === 'consultar') {
+          this.consultar(id);
+        } else if (acao === 'imprimir') {
+          this.imprimir(id);
+        } else if (acao === 'estornar') {
+          this.estornar(id);
+        }
+      });
     }, 5);
   }
 
@@ -189,16 +172,80 @@ export class PesquisarComponente implements OnInit, OnDestroy {
     }
   }
 
-  private atualizarGrid(vendas: VendaPesquisa[]): void {
-    this.destruirDataTable();
-    this.exibirTabela = false;
-    this.vendas = [];
-    this.changeDetectorRef.detectChanges();
+  private recarregar(): void {
+    if ($.fn.dataTable.isDataTable(this.tabelaId)) {
+      $(this.tabelaId).DataTable().ajax.reload();
+    }
+  }
 
-    this.vendas = vendas;
-    this.exibirTabela = true;
-    this.changeDetectorRef.detectChanges();
-    this.inicializarDataTable();
+  private colunas(): ConfigColumns[] {
+    return [
+      {
+        data: 'id',
+        orderable: false,
+        searchable: false,
+        render: (id: number) => `
+          <div class="action-stack d-flex gap-1">
+            <button type="button" class="btn btn-outline-primary btn-sm" title="Consultar venda" data-acao="consultar" data-id="${id}">
+              <i class="fa-solid fa-eye"></i>
+            </button>
+            <button type="button" class="btn btn-outline-secondary btn-sm" title="Imprimir venda" data-acao="imprimir" data-id="${id}">
+              <i class="fa-solid fa-print"></i>
+            </button>
+            <button type="button" class="btn btn-outline-danger btn-sm" title="Estornar venda" data-acao="estornar" data-id="${id}">
+              <i class="fa-solid fa-rotate-left"></i>
+            </button>
+          </div>`
+      },
+      { data: 'id' },
+      {
+        data: 'dataHora',
+        render: (dataHora: string) => dataHora ? DATA_HORA.format(new Date(dataHora)) : '-'
+      },
+      {
+        data: 'nomeCliente',
+        defaultContent: '',
+        render: (nomeCliente: string | null, _tipo: unknown, venda: { id: number }) => `
+          <div class="record-cell d-flex align-items-center">
+            <span class="text-primary me-2"><i class="fa-solid fa-file-invoice-dollar"></i></span>
+            <div>
+              <div class="record-main fw-semibold">${nomeCliente || 'Consumidor'}</div>
+              <div class="record-sub text-secondary small">Venda #${venda.id}</div>
+            </div>
+          </div>`
+      },
+      {
+        data: 'cpfCliente',
+        defaultContent: '-',
+        render: (cpf: number | null) => this.formatarCpf(cpf)
+      },
+      {
+        data: 'formaPagamento',
+        defaultContent: '-',
+        orderable: false,
+        render: (formaPagamento: FormaPagamento | null) =>
+          formaPagamento ? (FormaPagamentoLabels[formaPagamento] ?? formaPagamento) : '-'
+      },
+      {
+        data: 'total',
+        className: 'text-end',
+        render: (total: number) => NUMERO.format(total)
+      },
+      {
+        data: 'valorPago',
+        className: 'text-end',
+        orderable: false,
+        render: (valorPago: number | null) => valorPago != null ? NUMERO.format(valorPago) : '-'
+      }
+    ];
+  }
+
+  private formatarCpf(cpf: number | null | undefined): string {
+    if (cpf == null) {
+      return '-';
+    }
+    const digitos = String(cpf).padStart(11, '0');
+    return digitos.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
   }
 
 }

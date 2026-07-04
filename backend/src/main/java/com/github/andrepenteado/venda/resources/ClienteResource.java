@@ -5,6 +5,8 @@
  */
 package com.github.andrepenteado.venda.resources;
 
+import com.github.andrepenteado.venda.domain.dto.datatables.ClienteDatatablesRequest;
+import com.github.andrepenteado.venda.domain.dto.datatables.DatatablesResponse;
 import com.github.andrepenteado.venda.domain.entities.Cliente;
 import com.github.andrepenteado.venda.domain.filter.ClienteFilter;
 import com.github.andrepenteado.venda.services.ClienteService;
@@ -20,8 +22,6 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
-import java.util.List;
 
 /**
  * Resource REST de Cliente.
@@ -45,14 +45,16 @@ public class ClienteResource {
     }
 
     /**
-     * Lista todos os Clientes.
+     * Consulta paginada do grid de Clientes (server-side processing do
+     * DataTables), combinando o filtro da tela com a busca global do grid.
      *
-     * @return lista de Clientes.
+     * @param request request do DataTables e filtro da tela.
+     * @return página de Clientes e contadores.
      */
-    @GetMapping
-    public List<Cliente> listar() {
-        LOGGER.info("GET /clientes - Listar Clientes");
-        return service.listar();
+    @PostMapping("/datatables")
+    public DatatablesResponse<Cliente> datatables(@RequestBody ClienteDatatablesRequest request) {
+        LOGGER.info("POST /clientes/datatables - Consulta paginada de Clientes");
+        return service.datatables(request.datatables(), request.filtro() != null ? request.filtro() : new ClienteFilter());
     }
 
     /**

@@ -234,6 +234,9 @@
         <createIndex tableName="receber" indexName="idx_receber_venda">
             <column name="fk_venda"/>
         </createIndex>
+        <createIndex tableName="venda" indexName="idx_venda_data_hora">
+            <column name="data_hora"/>
+        </createIndex>
 
         <createTable tableName="cliente">
             <column name="id" type="BIGINT" autoIncrement="true">

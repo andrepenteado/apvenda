@@ -8,6 +8,8 @@ package com.github.andrepenteado.venda.services;
 import br.unesp.fc.andrepenteado.core.upload.UploadRepository;
 import br.unesp.fc.andrepenteado.core.web.services.SecurityService;
 import com.github.andrepenteado.venda.VendaApplication;
+import com.github.andrepenteado.venda.domain.dto.datatables.DatatablesRequest;
+import com.github.andrepenteado.venda.domain.dto.datatables.DatatablesResponse;
 import com.github.andrepenteado.venda.domain.entities.Categoria;
 import com.github.andrepenteado.venda.domain.entities.Marca;
 import com.github.andrepenteado.venda.domain.entities.Produto;
@@ -16,10 +18,15 @@ import com.github.andrepenteado.venda.domain.filter.ProdutoFilter;
 import com.github.andrepenteado.venda.domain.repositories.CategoriaRepository;
 import com.github.andrepenteado.venda.domain.repositories.MarcaRepository;
 import com.github.andrepenteado.venda.domain.repositories.ProdutoRepository;
+import com.github.andrepenteado.venda.services.datatables.DatatablesSupport;
+import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.Predicate;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,6 +34,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.StreamSupport;
 
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
@@ -39,6 +47,19 @@ import static org.springframework.http.HttpStatus.NOT_FOUND;
 public class ProdutoService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ProdutoService.class);
+
+    /**
+     * Whitelist de ordenação do grid: coluna do DataTables → propriedade da entidade.
+     */
+    private static final Map<String, String> COLUNAS_ORDENAVEIS = Map.of(
+        "id", "id",
+        "nome", "nome",
+        "categoria.nome", "categoria.nome",
+        "marca.nome", "marca.nome",
+        "precoVenda", "precoVenda",
+        "estoqueAtual", "estoqueAtual",
+        "ativo", "ativo"
+    );
 
     private final ProdutoRepository repository;
     private final CategoriaRepository categoriaRepository;
@@ -70,15 +91,35 @@ public class ProdutoService {
     }
 
     /**
-     * Lista todos os Produtos.
+     * Consulta paginada do grid de Produtos (server-side processing do
+     * DataTables): aplica o filtro da tela, a busca global do grid e a
+     * ordenação, devolvendo apenas a página solicitada.
      *
-     * @return lista de Produtos.
+     * @param request request do protocolo DataTables.
+     * @param filtro filtro da tela de pesquisa.
+     * @return página de Produtos e contadores.
      */
     @Transactional(readOnly = true)
     @Secured(VendaApplication.PERFIL_CAIXA)
-    public List<Produto> listar() {
-        LOGGER.info("Listando Produtos");
-        return repository.findAll();
+    public DatatablesResponse<Produto> datatables(DatatablesRequest request, ProdutoFilter filtro) {
+        LOGGER.info("Consulta datatables de Produtos: start={}, length={}", request.start(), request.length());
+
+        BooleanBuilder predicate = new BooleanBuilder(filtro != null ? filtro.toPredicate() : null);
+
+        String termo = DatatablesSupport.termoBusca(request);
+        if (termo != null) {
+            QProduto produto = QProduto.produto;
+            predicate.and(new BooleanBuilder()
+                .or(produto.nome.containsIgnoreCase(termo))
+                .or(produto.codigoBarras.eq(termo))
+                .or(produto.categoria.nome.containsIgnoreCase(termo))
+                .or(produto.marca.nome.containsIgnoreCase(termo)));
+        }
+
+        Pageable pageable = DatatablesSupport.toPageable(request, COLUNAS_ORDENAVEIS, Sort.by("nome"));
+        Page<Produto> pagina = repository.findAll(predicate, pageable);
+
+        return new DatatablesResponse<>(request.draw(), repository.count(), pagina.getTotalElements(), pagina.getContent());
     }
 
     /**
@@ -102,27 +143,6 @@ public class ProdutoService {
         return StreamSupport.stream(repository.findAll(predicate).spliterator(), false)
             .limit(20)
             .toList();
-    }
-
-    /**
-     * Pesquisa Produtos pelos filtros informados.
-     *
-     * @param filtro filtros de pesquisa.
-     * @return lista de Produtos encontrados.
-     */
-    @Transactional(readOnly = true)
-    @Secured(VendaApplication.PERFIL_CAIXA)
-    public Iterable<Produto> pesquisar(ProdutoFilter filtro) {
-        LOGGER.info(
-            "Pesquisando Produtos com filtro: nome={}, codigoBarras={}, categoria={}, marca={}, unidade={}, ativo={}",
-            filtro.getNome(),
-            filtro.getCodigoBarras(),
-            filtro.getCategoria(),
-            filtro.getMarca(),
-            filtro.getUnidade(),
-            filtro.getAtivo()
-        );
-        return repository.findAll(filtro.toPredicate());
     }
 
     /**
