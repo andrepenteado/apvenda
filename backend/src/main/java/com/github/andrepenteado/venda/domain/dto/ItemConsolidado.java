@@ -5,6 +5,8 @@
  */
 package com.github.andrepenteado.venda.domain.dto;
 
+import com.github.andrepenteado.venda.domain.enums.Unidade;
+
 import java.math.BigDecimal;
 
 /**
@@ -12,6 +14,7 @@ import java.math.BigDecimal;
  *
  * @param produto identificador do produto.
  * @param nome nome do produto.
+ * @param unidade unidade de medida do produto.
  * @param quantidade quantidade vendida.
  * @param valorUnitario preço de venda no momento da venda.
  * @param valorTotal quantidade multiplicada pelo valor unitário.
@@ -19,6 +22,7 @@ import java.math.BigDecimal;
 public record ItemConsolidado(
     Long produto,
     String nome,
+    Unidade unidade,
     BigDecimal quantidade,
     BigDecimal valorUnitario,
     BigDecimal valorTotal

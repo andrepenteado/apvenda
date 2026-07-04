@@ -9,7 +9,7 @@ import java.math.BigDecimal;
 import java.util.List;
 
 /**
- * Resultado da etapa "preparar e validar": itens precificados e total da venda.
+ * Itens precificados e total da venda, consolidados e validados internamente na finalização.
  *
  * @param itens itens consolidados.
  * @param total soma dos totais dos itens.

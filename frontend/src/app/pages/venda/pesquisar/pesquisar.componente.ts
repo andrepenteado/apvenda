@@ -4,15 +4,16 @@
  * Observação: arquivo criado com ajuda da IA.
  */
 import { CommonModule } from '@angular/common';
-import { ChangeDetectorRef, Component, inject, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, inject, OnDestroy, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { NgxMaskDirective, provideNgxMask } from 'ngx-mask';
 import { Datatables, DecoracaoMensagem, ExibirMensagemService } from '@andre.penteado/ngx-apcore';
 import { NgxUiLoaderModule, NgxUiLoaderService } from 'ngx-ui-loader';
 import Swal from 'sweetalert2';
 import { FormaPagamento, FormaPagamentoLabels } from '../../../domain/enums/forma-pagamento';
-import { VendaFiltro, VendaPesquisa, VendaService } from '../../../services/venda.service';
+import { VendaFiltro, VendaPesquisa, VendaResponse, VendaService } from '../../../services/venda.service';
+import { ImprimirVendaComponente } from '../imprimir/imprimir.componente';
 
 @Component({
   selector: 'venda-pesquisar',
@@ -21,9 +22,11 @@ import { VendaFiltro, VendaPesquisa, VendaService } from '../../../services/vend
     FormsModule,
     NgxMaskDirective,
     NgxUiLoaderModule,
-    RouterLink
+    RouterLink,
+    ImprimirVendaComponente
   ],
   providers: [provideNgxMask()],
+  changeDetection: ChangeDetectionStrategy.Eager,
   templateUrl: './pesquisar.componente.html'
 })
 export class PesquisarComponente implements OnInit, OnDestroy {
@@ -32,9 +35,13 @@ export class PesquisarComponente implements OnInit, OnDestroy {
   filtro: VendaFiltro = {};
   exibirTabela = true;
 
+  impressaoAberta = false;
+  vendaImpressao?: VendaResponse;
+
   private readonly loaderId = 'venda-pesquisar';
   private readonly tabelaId = '#datatables-pesquisar-venda';
   private readonly service: VendaService = inject(VendaService);
+  private readonly router: Router = inject(Router);
   private readonly changeDetectorRef: ChangeDetectorRef = inject(ChangeDetectorRef);
   private readonly uiLoaderService: NgxUiLoaderService = inject(NgxUiLoaderService);
   private readonly mensagemService: ExibirMensagemService = inject(ExibirMensagemService);
@@ -109,6 +116,26 @@ export class PesquisarComponente implements OnInit, OnDestroy {
         error: () => this.uiLoaderService.stopLoader(this.loaderId)
       });
     });
+  }
+
+  consultar(venda: VendaPesquisa): void {
+    this.router.navigate(['/vendas/consultar', venda.id]);
+  }
+
+  imprimir(venda: VendaPesquisa): void {
+    this.uiLoaderService.startLoader(this.loaderId);
+    this.service.buscar(venda.id).subscribe({
+      next: vendaCompleta => {
+        this.vendaImpressao = vendaCompleta;
+        this.impressaoAberta = true;
+        this.uiLoaderService.stopLoader(this.loaderId);
+      },
+      error: () => this.uiLoaderService.stopLoader(this.loaderId)
+    });
+  }
+
+  fecharImpressao(): void {
+    this.impressaoAberta = false;
   }
 
   formatarCpf(cpf: number | null | undefined): string {

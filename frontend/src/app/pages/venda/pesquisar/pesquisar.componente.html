@@ -165,14 +165,32 @@
             @for (venda of vendas; track venda.id) {
             <tr>
               <td>
-                <button
-                  type="button"
-                  class="btn btn-outline-danger btn-sm"
-                  title="Estornar venda"
-                  [attr.aria-label]="'Estornar venda #' + venda.id"
-                  (click)="estornar(venda)">
-                  <i class="fa-solid fa-rotate-left"></i>
-                </button>
+                <div class="action-stack d-flex gap-1">
+                  <button
+                    type="button"
+                    class="btn btn-outline-primary btn-sm"
+                    title="Consultar venda"
+                    [attr.aria-label]="'Consultar venda #' + venda.id"
+                    (click)="consultar(venda)">
+                    <i class="fa-solid fa-eye"></i>
+                  </button>
+                  <button
+                    type="button"
+                    class="btn btn-outline-secondary btn-sm"
+                    title="Imprimir venda"
+                    [attr.aria-label]="'Imprimir venda #' + venda.id"
+                    (click)="imprimir(venda)">
+                    <i class="fa-solid fa-print"></i>
+                  </button>
+                  <button
+                    type="button"
+                    class="btn btn-outline-danger btn-sm"
+                    title="Estornar venda"
+                    [attr.aria-label]="'Estornar venda #' + venda.id"
+                    (click)="estornar(venda)">
+                    <i class="fa-solid fa-rotate-left"></i>
+                  </button>
+                </div>
               </td>
               <td>{{ venda.id }}</td>
               <td>{{ venda.dataHora | date:'dd/MM/yyyy HH:mm' }}</td>
@@ -198,3 +216,13 @@
     </div>
   </section>
 </section>
+
+<venda-imprimir
+  [aberto]="impressaoAberta"
+  [vendaId]="vendaImpressao?.id ?? null"
+  [nomeCliente]="vendaImpressao?.cliente || 'CONSUMIDOR'"
+  [telefoneCliente]="vendaImpressao?.telefoneCliente ?? null"
+  [itens]="vendaImpressao?.itens ?? []"
+  [total]="vendaImpressao?.total ?? 0"
+  (fechar)="fecharImpressao()">
+</venda-imprimir>

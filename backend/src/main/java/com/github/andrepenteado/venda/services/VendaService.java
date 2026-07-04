@@ -86,21 +86,9 @@ public class VendaService {
     }
 
     /**
-     * Etapa 1: calcula os totais e valida os itens, sem gravar.
-     *
-     * @param request itens do carrinho.
-     * @return venda consolidada (itens precificados e total).
-     */
-    @Transactional(readOnly = true)
-    @Secured(VendaApplication.PERFIL_CAIXA)
-    public VendaConsolidada preparar(VendaRequest request) {
-        LOGGER.info("Preparando venda no PDV com {} item(ns)", request.itens() == null ? 0 : request.itens().size());
-        return consolidar(request.itens());
-    }
-
-    /**
-     * Etapa 2: grava a Venda, os ItemVenda e o registro único de Receber (sempre
-     * pago na data da venda) e baixa o estoque, tudo na mesma transação.
+     * Finaliza a venda: consolida e valida os itens, grava a Venda, os ItemVenda
+     * e o registro único de Receber (sempre pago na data da venda) e baixa o
+     * estoque, tudo na mesma transação.
      *
      * @param request itens e dados de pagamento.
      * @return venda gravada.
@@ -174,6 +162,34 @@ public class VendaService {
     public List<VendaPesquisaResponse> listar() {
         LOGGER.info("Listando todas as vendas");
         return repository.findAll().stream().map(this::toResponse).toList();
+    }
+
+    /**
+     * Busca uma venda pelo identificador, com os itens vendidos, para consulta
+     * somente leitura (ex.: tela de consulta e impressão do relatório de vendas).
+     *
+     * @param id identificador da venda.
+     * @return venda encontrada, com os itens.
+     */
+    @Transactional(readOnly = true)
+    @Secured(VendaApplication.PERFIL_CAIXA)
+    public VendaResponse buscar(Long id) {
+        LOGGER.info("Buscando venda #{}", id);
+        Venda venda = repository.findById(id)
+            .orElseThrow(() -> new ResponseStatusException(NOT_FOUND, "Venda não encontrada"));
+
+        List<ItemConsolidado> itens = venda.getItens().stream()
+            .map(item -> new ItemConsolidado(
+                item.getProduto().getId(),
+                item.getProduto().getNome(),
+                item.getProduto().getUnidade(),
+                item.getQuantidade(),
+                item.getValorUnitario(),
+                item.getValorTotal()
+            ))
+            .toList();
+
+        return montarResposta(venda, itens);
     }
 
     /**
@@ -294,7 +310,7 @@ public class VendaService {
 
             BigDecimal valorUnitario = produto.getPrecoVenda();
             BigDecimal valorTotal = valorUnitario.multiply(req.quantidade()).setScale(2, RoundingMode.HALF_UP);
-            itens.add(new ItemConsolidado(produto.getId(), produto.getNome(), req.quantidade(), valorUnitario, valorTotal));
+            itens.add(new ItemConsolidado(produto.getId(), produto.getNome(), produto.getUnidade(), req.quantidade(), valorUnitario, valorTotal));
             total = total.add(valorTotal);
         }
 
@@ -329,9 +345,17 @@ public class VendaService {
 
     private VendaResponse montarResposta(Venda venda, List<ItemConsolidado> itens) {
         Receber receber = venda.getRecebimentos().getFirst();
-        String cliente = venda.getCliente() != null ? venda.getCliente().getNome() : null;
-        return new VendaResponse(venda.getId(), venda.getDataHora(), venda.getTotal(), cliente, itens,
-            receber.getFormaPagamento(), receber.getValorPago());
+        Cliente cliente = venda.getCliente();
+        return new VendaResponse(
+            venda.getId(),
+            venda.getDataHora(),
+            venda.getTotal(),
+            cliente != null ? cliente.getNome() : null,
+            cliente != null ? cliente.getTelefone() : null,
+            itens,
+            receber.getFormaPagamento(),
+            receber.getValorPago()
+        );
     }
 
     private VendaPesquisaResponse toResponse(Venda venda) {
@@ -341,7 +365,7 @@ public class VendaService {
             venda.getId(),
             venda.getDataHora(),
             cliente != null ? cliente.getNome() : null,
-            cliente != null ? cliente.getCpf() : null,
+            cliente != null ? cliente.getCpfCnpj() : null,
             receber != null ? receber.getFormaPagamento() : null,
             venda.getTotal(),
             receber != null ? receber.getValorPago() : null

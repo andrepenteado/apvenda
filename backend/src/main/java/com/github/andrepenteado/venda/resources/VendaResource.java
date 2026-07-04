@@ -6,7 +6,6 @@
 package com.github.andrepenteado.venda.resources;
 
 import com.github.andrepenteado.venda.domain.dto.DashboardResponse;
-import com.github.andrepenteado.venda.domain.dto.VendaConsolidada;
 import com.github.andrepenteado.venda.domain.dto.VendaPesquisaResponse;
 import com.github.andrepenteado.venda.domain.dto.VendaRequest;
 import com.github.andrepenteado.venda.domain.dto.VendaResponse;
@@ -58,20 +57,8 @@ public class VendaResource {
     }
 
     /**
-     * Etapa 1 da finalização: calcula os totais e valida os itens, sem gravar.
-     *
-     * @param request itens do carrinho.
-     * @return venda consolidada.
-     */
-    @PostMapping("/preparar")
-    public VendaConsolidada preparar(@RequestBody VendaRequest request) {
-        LOGGER.info("POST /vendas/preparar - Preparar venda");
-        return service.preparar(request);
-    }
-
-    /**
-     * Etapa 2 da finalização: grava a venda, os itens e o recebimento único (já
-     * pago), e baixa o estoque.
+     * Finaliza a venda: consolida e valida os itens, grava a venda, os itens e o
+     * recebimento único (já pago), e baixa o estoque.
      *
      * @param request itens e dados de pagamento.
      * @return venda gravada.
@@ -104,6 +91,18 @@ public class VendaResource {
         LOGGER.info("GET /vendas/pesquisar - Pesquisar Vendas: idVenda={}, dataInicio={}, dataFinal={}, cpfCliente={}, consumidor={}",
             filtro.getIdVenda(), filtro.getDataInicio(), filtro.getDataFinal(), filtro.getCpfCliente(), filtro.getConsumidor());
         return service.pesquisar(filtro);
+    }
+
+    /**
+     * Busca uma venda pelo identificador, com os itens vendidos.
+     *
+     * @param id identificador da venda.
+     * @return venda encontrada.
+     */
+    @GetMapping("/{id}")
+    public VendaResponse buscar(@PathVariable Long id) {
+        LOGGER.info("GET /vendas/{} - Buscar venda", id);
+        return service.buscar(id);
     }
 
     /**

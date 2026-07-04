@@ -156,53 +156,49 @@ Registrar uma venda de forma ágil, operada **inteiramente por teclado, sem nece
 - `F2`: foco no campo de pesquisa de produto.
 - `F3`: foco no campo quantidade, quando habilitado.
 - `Del`: entra no modo de navegação dos itens do carrinho; `Seta acima` / `Seta abaixo` selecionam o item e `Enter` confirma a exclusão.
-- `F10`: **finalizar venda** (consolida a venda no backend e habilita o formulário de finalização).
-- `Ctrl + F11`: confirma a finalização da venda (no modo finalização).
-- `Esc`: volta do modo finalização para a montagem da venda (mantém o carrinho).
+- `F6`: abre o modal de vínculo de cliente.
+- `Ctrl + D`: remove o vínculo de cliente (quando houver cliente vinculado).
+- `F10`: abre o **modal de pagamento**.
+- No modal de pagamento: `F7` foca a forma de pagamento, `F8` os juros, `F9` o desconto e `Esc` volta (fecha o modal).
+- `Ctrl + F11`: **finaliza a venda** (exige ao menos um item; funciona também a partir do modal de pagamento).
+- `Esc`: sai do modo de exclusão e fecha os modais (cliente, pagamento e impressão).
 - `Ctrl + C`: cancela a venda a qualquer momento (o cancelamento exige confirmação, então não copia nem cancela por engano).
-- `F4`: imprime o cupom (ver "Impressão do cupom").
+- `F4`: imprime o comprovante (ver "Impressão do comprovante").
 - Exclusão de item e cancelamento da venda exibem popup de confirmação; no cancelamento, a opção padrão é **Não** (evita cancelar por engano ao pressionar `Enter`).
 
 No modal de impressão, `[Ctrl + P]` imprime e `[Esc]` fecha.
 
 ### Pagamento e finalização
 
-A finalização acontece em um **formulário fixo abaixo da lista de itens** (não há modal de pagamento), com alternância de modo entre montagem e finalização:
+O pagamento acontece em um **modal**, aberto pelo botão **[F10] Pagar** (ou pela tecla `F10`), exigindo ao menos um item no carrinho:
 
-- Enquanto se adicionam produtos, os campos do formulário de finalização ficam **readonly**; ao entrar no modo finalização, os campos de produto/quantidade ficam **readonly** e o formulário é habilitado.
-- O formulário tem os campos: **Forma de pagamento**, **Juros (%)** e **Desconto (%)** (inteiros, em percentual, aplicados sobre o total) e **Valor pago** (readonly, calculado: `total` + `total` × `juros`% − `total` × `desconto`%).
+- O modal tem os campos: **Forma de pagamento** (`F7`), **Juros (%)** (`F8`) e **Desconto (%)** (`F9`) — inteiros, em percentual, aplicados sobre o total — e **Valor a pagar** (somente exibição, calculado em tempo real no frontend: `total` + `total` × `juros`% − `total` × `desconto`%).
+- **Finalizar** (`Ctrl + F11`, botão do modal): o frontend envia itens, juros, desconto e forma de pagamento em uma única chamada; o backend consolida e valida os itens, grava a `Venda`, os `ItemVenda` e **um único `Receber` já quitado** e baixa o estoque. Ao concluir, abre o modal de impressão com o cabeçalho `VENDA #NNN` (id gerado).
 
-O fluxo usa duas chamadas ao backend:
+### Exibição do carrinho
 
-1. **Finalizar venda** (`F10`): o frontend envia os itens do carrinho; o backend faz a somatória (totais) e valida, devolvendo o total consolidado. O formulário de finalização é habilitado com o foco na forma de pagamento.
-2. **Confirmar** (`Ctrl + F11`, botão do formulário): o frontend envia itens, juros, desconto e forma de pagamento; o backend grava a `Venda`, os `ItemVenda` e **um único `Receber` já quitado** e baixa o estoque. Ao concluir, abre o modal de impressão com o cabeçalho `VENDA #NNN` (id gerado).
+A lista de itens fica em um card entre o formulário de produto e a barra de ações, em tabela Bootstrap alinhada ao visual do restante do sistema:
 
-O botão `[Esc] Voltar aos itens` retorna à montagem da venda.
+- colunas `Produto` (miniatura da foto e nome), `Quantidade` (com a unidade), `Valor Unitário` e `Valor Total`;
+- cabeçalho do card com o cliente vinculado e um badge com o contador de itens;
+- o card tem **altura fixa**: quando os itens ultrapassam o limite, a tabela rola dentro do card (como um *dbrowse*), com o cabeçalho fixo (`sticky`);
+- rodapé do card com o total da venda em destaque;
+- o modo de exclusão (`Del`) destaca a linha selecionada (`table-warning`).
 
-### Exibição do carrinho (estilo cupom)
+### Impressão do comprovante
 
-A lista de itens fica abaixo da pesquisa, com aparência de cupom fiscal impresso:
-
-- fundo branco e letras pretas;
-- caracteres monoespaçados;
-- colunas `PRODUTO` (descrição), `QTD`, `VALOR UNITÁRIO` e `VALOR TOTAL`;
-- cabeçalho, itens e rodapé separados por linha tracejada (`--------`);
-- rodapé com o total da venda alinhado à direita.
-
-### Impressão do cupom
-
-- `F4` abre um **modal Bootstrap** com o cupom, a qualquer momento da venda; ao finalizar, o modal abre automaticamente. (A tecla `Print` / `PrtSc` é capturada pelo sistema operacional para captura de tela e não é confiável no navegador; por isso `F4`.)
+- A impressão usa o componente reutilizável **`venda-imprimir`** (`pages/venda/imprimir/`), compartilhado com o relatório de vendas e a consulta de venda.
+- `F4` abre um **modal Bootstrap** com o comprovante, a qualquer momento da venda; ao finalizar, o modal abre automaticamente. (A tecla `Print` / `PrtSc` é capturada pelo sistema operacional para captura de tela e não é confiável no navegador; por isso `F4`.)
 - No modal, `[Ctrl + P]` imprime e `[Esc]` fecha. O `Ctrl + P` usa a impressão nativa do navegador, imprimindo **apenas o conteúdo do modal**: via `@media print`, o restante da tela e os próprios botões do modal ficam ocultos (classe `d-print-none` do Bootstrap).
-- Cupom em folha **A4** (`@page { size: A4 }`), com aspecto de cupom fiscal (fundo branco, letras pretas, monoespaçado, separadores tracejados e total à direita).
-- O cabeçalho do cupom é **`ORÇAMENTO`** quando impresso antes da finalização e **`VENDA #NNN`** (id da venda) após finalizar.
+- Comprovante em folha **A4** (`@page { size: A4 }`), com layout de documento moderno: título (`ORÇAMENTO` antes da finalização, `VENDA #NNN` depois), cliente, **telefone do cliente quando preenchido** e tabela de itens com total. Na impressão o fundo é forçado a branco com letras pretas, independente do tema ativo.
 
 ### Dimensionamento e UX
 
-- No topo à direita da tela, exibir um ícone FontAwesome que lembre um ponto de venda (ex.: `fa-cash-register`), centralizado verticalmente em relação aos campos de produto, quantidade e preço.
-- Campos de pesquisa, quantidade e preço usam fonte maior que o padrão, dimensionada para uso em tela cheia num monitor 1024x768 (4:3). O tamanho não deve ser fixo: é apenas referência de cálculo e precisa ficar adequado também em telas widescreen.
-- A lista de itens usa fonte menor que a dos campos, porém maior ou igual ao padrão do sistema.
+- A tela é dividida em **cards** (produto e itens da venda) mais uma barra de ações, com cabeçalhos com ícone e descrição, no mesmo padrão visual das telas de cadastro. O pagamento fica em um modal.
+- Campos de operação usam `input-group-lg` / `form-control-lg` do Bootstrap, com ícone à esquerda (input groups); o `ng-select` recebe CSS mínimo apenas para acompanhar a altura e a fonte desses campos.
+- O cliente vinculado aparece como botão no cabeçalho da página e no cabeçalho do card de itens.
+- Atalhos documentados com `<kbd>` (estilizado discreto, sem o preto forte padrão) ao lado dos labels; nos botões, o atalho aparece como prefixo (ex.: `[F10] Pagar`).
 - Priorizar os recursos do Bootstrap 5 no desenho da tela e reduzir ao mínimo o CSS customizado.
-- Documentar os atalhos de forma discreta: em um rodapé compacto no PDV e ao lado do label dos campos que tiverem atalho (ex.: `Produto [F2]`, `Quantidade [F3]`).
 
 ### Dados e escopo
 
@@ -220,5 +216,7 @@ A lista de itens fica abaixo da pesquisa, com aparência de cupom fiscal impress
 A tela **Vendas** (menu `Vendas`, rota `/vendas`) consulta as vendas registradas no PDV, baseada na tabela `venda`. Não é um CRUD gerado por YAML.
 
 - **Filtros**: número da venda, período (data da venda), CPF do cliente e consumidor (somente vendas sem cliente vinculado). A pesquisa exige ao menos um filtro; limpar os filtros lista todas as vendas.
-- **Grid**: a primeira coluna é a de **ação**, com o botão de **estorno**; as demais exibem id, data/hora, cliente (ou "Consumidor"), CPF, forma de pagamento, total e valor pago.
+- **Grid**: a primeira coluna é a de **ação**, com os botões **consultar**, **imprimir** e **estorno**; as demais exibem id, data/hora, cliente (ou "Consumidor"), CPF, forma de pagamento, total e valor pago.
+- **Consultar**: abre a página somente leitura `/vendas/consultar/:id` com os dados da venda (data/hora, cliente, forma de pagamento e valor pago) e a tabela de itens vendidos; o único botão de ação é **Imprimir**, que abre o modal do componente `venda-imprimir`.
+- **Imprimir**: busca a venda (`GET /vendas/{id}`) e abre o modal de impressão direto na grid, sem navegar, reutilizando o componente `venda-imprimir` do PDV.
 - **Estorno**: mediante confirmação (opção padrão **Não**), exclui a `Venda`, os `ItemVenda` e o `Receber` e **devolve as quantidades vendidas ao estoque**, tudo na mesma transação.

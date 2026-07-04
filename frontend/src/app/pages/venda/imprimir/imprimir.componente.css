@@ -1,0 +1,67 @@
+/*
+ * Autor: André Penteado
+ * Criado em: 04/07/2026 -03
+ * Observação: arquivo criado com ajuda da IA.
+ */
+
+/* Linhas mais baixas que o padrão do Bootstrap (padding vertical 1rem -> .56rem),
+   no mesmo padrão de altura da tabela de itens do PDV. */
+.venda-itens > :not(caption) > * > * {
+  padding-bottom: .56rem;
+  padding-top: .56rem;
+}
+
+/* Impressão: só o modal do comprovante vai ao papel, ocupando a folha A4 inteira. */
+@media print {
+  @page {
+    size: A4;
+    margin: 12mm;
+  }
+
+  .modal {
+    position: static !important;
+    display: block !important;
+    overflow: visible !important;
+    background: transparent !important;
+  }
+
+  .modal-dialog {
+    display: block !important;
+    max-width: none !important;
+    width: 100% !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    transform: none !important;
+  }
+
+  .modal-content {
+    border: none !important;
+    box-shadow: none !important;
+  }
+
+  .modal-backdrop {
+    display: none !important;
+  }
+
+  /* Papel impresso deve sair sempre claro, independente do tema ativo na tela. */
+  .venda-impressao {
+    background: #fff !important;
+    color: #000 !important;
+  }
+
+  .venda-impressao .table {
+    --bs-table-bg: transparent;
+    --bs-table-color: #000;
+    --bs-table-striped-bg: rgba(0, 0, 0, .04);
+    --bs-table-striped-color: #000;
+    --bs-table-border-color: #000;
+  }
+
+  .venda-impressao .text-secondary {
+    color: #495057 !important;
+  }
+
+  .venda-impressao .border-bottom {
+    border-bottom-color: #000 !important;
+  }
+}

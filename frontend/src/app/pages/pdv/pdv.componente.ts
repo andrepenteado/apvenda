@@ -4,7 +4,7 @@
  * Observação: arquivo criado com ajuda da IA.
  */
 import { CommonModule } from '@angular/common';
-import { Component, ElementRef, HostListener, OnDestroy, OnInit, ViewChild, inject } from '@angular/core';
+import { Component, ElementRef, HostListener, OnDestroy, OnInit, ViewChild, inject, ChangeDetectionStrategy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { NgSelectComponent, NgSelectModule } from '@ng-select/ng-select';
 import { DecoracaoMensagem, ExibirMensagemService, UploadService } from '@andre.penteado/ngx-apcore';
@@ -16,6 +16,7 @@ import { FormaPagamento, FormaPagamentoLabels } from '../../domain/enums/forma-p
 import { Unidade, UnidadeLabels } from '../../domain/enums/unidade';
 import { ClienteService } from '../../services/cliente.service';
 import { VendaRequest, VendaResponse, VendaService } from '../../services/venda.service';
+import { ImprimirVendaComponente } from '../venda/imprimir/imprimir.componente';
 
 interface ItemCarrinho {
   produtoId: number;
@@ -29,8 +30,9 @@ interface ItemCarrinho {
 
 @Component({
   selector: 'venda-pdv',
-  imports: [CommonModule, FormsModule, NgSelectModule],
+  imports: [CommonModule, FormsModule, NgSelectModule, ImprimirVendaComponente],
   templateUrl: './pdv.componente.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './pdv.componente.css'
 })
 export class PdvComponente implements OnInit, OnDestroy {
@@ -55,8 +57,7 @@ export class PdvComponente implements OnInit, OnDestroy {
   readonly pesquisaCliente$ = new Subject<string>();
   buscandoCliente = false;
 
-  finalizando = false;
-  totalConsolidado = 0;
+  pagamentoModalAberto = false;
   juros = 0;
   desconto = 0;
   formaPagamento: FormaPagamento = FormaPagamento.DINHEIRO;
@@ -70,6 +71,8 @@ export class PdvComponente implements OnInit, OnDestroy {
   @ViewChild('inputQtd') inputQtd?: ElementRef<HTMLInputElement>;
   @ViewChild('clienteSelect') clienteSelect?: NgSelectComponent;
   @ViewChild('selectForma') selectForma?: ElementRef<HTMLSelectElement>;
+  @ViewChild('inputJuros') inputJuros?: ElementRef<HTMLInputElement>;
+  @ViewChild('inputDesconto') inputDesconto?: ElementRef<HTMLInputElement>;
 
   private readonly service = inject(VendaService);
   private readonly clienteService = inject(ClienteService);
@@ -122,11 +125,7 @@ export class PdvComponente implements OnInit, OnDestroy {
   }
 
   get valorPago(): number {
-    return this.arred2((this.totalConsolidado * (100 + (this.juros || 0) - (this.desconto || 0))) / 100);
-  }
-
-  get cabecalhoCupom(): string {
-    return this.vendaFinalizada ? `VENDA #${this.vendaFinalizada.id}` : 'ORÇAMENTO';
+    return this.arred2((this.total * (100 + (this.juros || 0) - (this.desconto || 0))) / 100);
   }
 
   get nomeCliente(): string {
@@ -157,7 +156,7 @@ export class PdvComponente implements OnInit, OnDestroy {
   }
 
   adicionarAoCarrinho(): void {
-    if (!this.produtoSelecionado || this.finalizando) {
+    if (!this.produtoSelecionado) {
       return;
     }
     if (!this.quantidade || this.quantidade <= 0) {
@@ -171,7 +170,7 @@ export class PdvComponente implements OnInit, OnDestroy {
       existente.quantidade = this.arred2(existente.quantidade + this.quantidade);
       existente.valorTotal = this.arred2(existente.quantidade * existente.valorUnitario);
     } else {
-      this.itens.push({
+      this.itens.unshift({
         produtoId: produto.id!,
         nome: produto.nome,
         unidade: produto.unidade,
@@ -189,9 +188,6 @@ export class PdvComponente implements OnInit, OnDestroy {
   }
 
   abrirModalCliente(): void {
-    if (this.finalizando) {
-      return;
-    }
     this.clienteModel = this.clienteSelecionado;
     this.clientes = this.clienteSelecionado ? [this.clienteSelecionado] : [];
     this.clienteModalAberto = true;
@@ -209,9 +205,14 @@ export class PdvComponente implements OnInit, OnDestroy {
   }
 
   removerVinculoCliente(): void {
+    if (!this.clienteSelecionado) {
+      return;
+    }
     this.clienteSelecionado = null;
     this.clienteModel = null;
-    this.fecharModalCliente();
+    if (this.clienteModalAberto) {
+      this.fecharModalCliente();
+    }
   }
 
   formatarCpf(cpf: number): string {
@@ -242,27 +243,25 @@ export class PdvComponente implements OnInit, OnDestroy {
     });
   }
 
-  iniciarFinalizacao(): void {
+  abrirPagamento(): void {
+    if (this.itens.length === 0) {
+      this.aviso('Adicione ao menos um produto para pagar.');
+      return;
+    }
+    this.pagamentoModalAberto = true;
+    setTimeout(() => this.selectForma?.nativeElement.focus(), 100);
+  }
+
+  fecharPagamento(): void {
+    this.pagamentoModalAberto = false;
+    setTimeout(() => this.focarPesquisa(), 0);
+  }
+
+  finalizarVenda(): void {
     if (this.itens.length === 0) {
       this.aviso('Adicione ao menos um produto para finalizar a venda.');
       return;
     }
-    const request: VendaRequest = {
-      itens: this.itens.map(item => ({ produto: item.produtoId, quantidade: item.quantidade }))
-    };
-    this.service.preparar(request).subscribe({
-      next: consolidada => {
-        this.totalConsolidado = consolidada.total;
-        this.juros = 0;
-        this.desconto = 0;
-        this.formaPagamento = FormaPagamento.DINHEIRO;
-        this.finalizando = true;
-        setTimeout(() => this.selectForma?.nativeElement.focus(), 100);
-      }
-    });
-  }
-
-  finalizarVenda(): void {
     const request: VendaRequest = {
       itens: this.itens.map(item => ({ produto: item.produtoId, quantidade: item.quantidade })),
       cliente: this.clienteSelecionado?.id ?? null,
@@ -273,20 +272,15 @@ export class PdvComponente implements OnInit, OnDestroy {
     this.service.finalizar(request).subscribe({
       next: venda => {
         this.vendaFinalizada = venda;
-        this.finalizando = false;
+        this.pagamentoModalAberto = false;
         this.mensagemService.showMessage(`Venda #${venda.id} finalizada com sucesso.`, 'PDV', DecoracaoMensagem.SUCESSO);
         this.impressaoAberta = true;
       }
     });
   }
 
-  voltarAosItens(): void {
-    this.finalizando = false;
-    setTimeout(() => this.focarPesquisa(), 0);
-  }
-
   cancelarVenda(): void {
-    if (this.itens.length === 0 && !this.finalizando) {
+    if (this.itens.length === 0) {
       return;
     }
     Swal.fire({
@@ -322,10 +316,6 @@ export class PdvComponente implements OnInit, OnDestroy {
     }
   }
 
-  imprimir(): void {
-    window.print();
-  }
-
   novaVenda(): void {
     this.itens = [];
     this.produtoSelecionado = null;
@@ -337,10 +327,9 @@ export class PdvComponente implements OnInit, OnDestroy {
     this.clienteSelecionado = null;
     this.clienteModel = null;
     this.clientes = [];
-    this.finalizando = false;
+    this.pagamentoModalAberto = false;
     this.impressaoAberta = false;
     this.vendaFinalizada = null;
-    this.totalConsolidado = 0;
     this.juros = 0;
     this.desconto = 0;
     this.formaPagamento = FormaPagamento.DINHEIRO;
@@ -358,26 +347,26 @@ export class PdvComponente implements OnInit, OnDestroy {
       return;
     }
 
+    // Remover vínculo de cliente: a qualquer momento (quando houver cliente).
+    if (evento.ctrlKey && (tecla === 'd' || tecla === 'D')) {
+      evento.preventDefault();
+      this.removerVinculoCliente();
+      return;
+    }
+
+    // Finalizar venda: a qualquer momento (a conclusão permanece com Ctrl+F11).
+    if (evento.ctrlKey && tecla === 'F11') {
+      evento.preventDefault();
+      this.finalizarVenda();
+      return;
+    }
+
     if (this.impressaoAberta) {
       if (tecla === 'Escape') {
         evento.preventDefault();
         this.fecharImpressao();
       }
       // Ctrl+P é tratado nativamente pelo navegador (imprime só o modal via CSS).
-      return;
-    }
-
-    if (this.finalizando) {
-      if (evento.ctrlKey && tecla === 'F11') {
-        evento.preventDefault();
-        this.finalizarVenda();
-      } else if (tecla === 'Escape') {
-        evento.preventDefault();
-        this.voltarAosItens();
-      } else if (tecla === 'F4') {
-        evento.preventDefault();
-        this.abrirImpressao();
-      }
       return;
     }
 
@@ -389,7 +378,23 @@ export class PdvComponente implements OnInit, OnDestroy {
       return;
     }
 
-    // Montagem da venda.
+    if (this.pagamentoModalAberto) {
+      if (tecla === 'F7') {
+        evento.preventDefault();
+        this.selectForma?.nativeElement.focus();
+      } else if (tecla === 'F8') {
+        evento.preventDefault();
+        this.focarCampo(this.inputJuros);
+      } else if (tecla === 'F9') {
+        evento.preventDefault();
+        this.focarCampo(this.inputDesconto);
+      } else if (tecla === 'Escape') {
+        evento.preventDefault();
+        this.fecharPagamento();
+      }
+      return;
+    }
+
     if (tecla === 'F2') {
       evento.preventDefault();
       this.focarPesquisa();
@@ -412,7 +417,7 @@ export class PdvComponente implements OnInit, OnDestroy {
     }
     if (tecla === 'F10') {
       evento.preventDefault();
-      this.iniciarFinalizacao();
+      this.abrirPagamento();
       return;
     }
     if (this.modoExclusao) {
@@ -463,7 +468,11 @@ export class PdvComponente implements OnInit, OnDestroy {
   }
 
   private focarQuantidade(): void {
-    const elemento = this.inputQtd?.nativeElement;
+    this.focarCampo(this.inputQtd);
+  }
+
+  private focarCampo(campo?: ElementRef<HTMLInputElement>): void {
+    const elemento = campo?.nativeElement;
     if (elemento) {
       elemento.focus();
       elemento.select();

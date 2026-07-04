@@ -18,6 +18,7 @@ import java.util.List;
  * @param dataHora data e hora da venda.
  * @param total total da venda.
  * @param cliente nome do cliente vinculado; nulo quando consumidor.
+ * @param telefoneCliente telefone do cliente vinculado; nulo quando consumidor ou sem telefone.
  * @param itens itens da venda.
  * @param formaPagamento forma de pagamento da venda.
  * @param valorPago valor líquido pago (total com juros/desconto aplicados).
@@ -27,6 +28,7 @@ public record VendaResponse(
     LocalDateTime dataHora,
     BigDecimal total,
     String cliente,
+    String telefoneCliente,
     List<ItemConsolidado> itens,
     FormaPagamento formaPagamento,
     BigDecimal valorPago

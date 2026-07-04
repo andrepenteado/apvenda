@@ -10,6 +10,7 @@ import { API_PRODUTOS, API_VENDAS } from '../config/api';
 import { INIT_CONFIG, InitConfig } from '../config/init-config.token';
 import { Produto } from '../domain/entities/produto';
 import { FormaPagamento } from '../domain/enums/forma-pagamento';
+import { Unidade } from '../domain/enums/unidade';
 
 export interface ItemVendaRequest {
   produto: number;
@@ -27,14 +28,10 @@ export interface VendaRequest {
 export interface ItemConsolidado {
   produto: number;
   nome: string;
+  unidade: Unidade;
   quantidade: number;
   valorUnitario: number;
   valorTotal: number;
-}
-
-export interface VendaConsolidada {
-  itens: ItemConsolidado[];
-  total: number;
 }
 
 export interface VendaResponse {
@@ -42,6 +39,7 @@ export interface VendaResponse {
   dataHora: string;
   total: number;
   cliente: string | null;
+  telefoneCliente: string | null;
   itens: ItemConsolidado[];
   formaPagamento: FormaPagamento;
   valorPago: number;
@@ -119,10 +117,6 @@ export class VendaService {
     return this.http.get<Produto[]>(`${this.initConfig.urlBackend}${API_PRODUTOS}/pdv`, { params });
   }
 
-  preparar(request: VendaRequest): Observable<VendaConsolidada> {
-    return this.http.post<VendaConsolidada>(`${this.initConfig.urlBackend}${API_VENDAS}/preparar`, request);
-  }
-
   finalizar(request: VendaRequest): Observable<VendaResponse> {
     return this.http.post<VendaResponse>(`${this.initConfig.urlBackend}${API_VENDAS}`, request);
   }
@@ -155,6 +149,10 @@ export class VendaService {
     }
 
     return this.http.get<VendaPesquisa[]>(`${this.initConfig.urlBackend}${API_VENDAS}/pesquisar`, { params });
+  }
+
+  buscar(id: number): Observable<VendaResponse> {
+    return this.http.get<VendaResponse>(`${this.initConfig.urlBackend}${API_VENDAS}/${id}`);
   }
 
   estornar(id: number): Observable<void> {

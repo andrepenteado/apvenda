@@ -8,7 +8,7 @@ package com.github.andrepenteado.venda.domain.dto;
 import java.math.BigDecimal;
 
 /**
- * Item enviado pelo PDV (produto e quantidade) para preparar ou finalizar a venda.
+ * Item enviado pelo PDV (produto e quantidade) para finalizar a venda.
  *
  * @param produto identificador do produto.
  * @param quantidade quantidade vendida.

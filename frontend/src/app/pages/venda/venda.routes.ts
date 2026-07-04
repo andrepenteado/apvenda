@@ -16,6 +16,11 @@ export const VENDA_ROUTES: Routes = [
   {
     path: 'pesquisar',
     loadComponent: () => import('./pesquisar/pesquisar.componente').then(c => c.PesquisarComponente)
+  },
+
+  {
+    path: 'consultar/:id',
+    loadComponent: () => import('./consultar/consultar.componente').then(c => c.ConsultarComponente)
   }
 
 ];
