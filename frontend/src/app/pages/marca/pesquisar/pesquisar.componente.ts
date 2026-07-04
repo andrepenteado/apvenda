@@ -11,6 +11,7 @@ import { Datatables, DecoracaoMensagem, ExibirMensagemService } from '@andre.pen
 import { NgxUiLoaderModule, NgxUiLoaderService } from 'ngx-ui-loader';
 import Swal from 'sweetalert2';
 import { Marca } from '../../../domain/entities/marca';
+import { FiltroSessaoService } from '../../../services/filtro-sessao.service';
 import { MARCA_CAMPOS_PESQUISA, MarcaFiltro, MarcaService } from '../../../services/marca.service';
 
 @Component({
@@ -33,14 +34,22 @@ export class PesquisarComponente implements OnInit, OnDestroy {
 
   private readonly loaderId = 'marca-pesquisar';
   private readonly tabelaId = '#datatables-pesquisar-marcas';
+  private readonly filtroChave = 'marca';
   private readonly service: MarcaService = inject(MarcaService);
+  private readonly filtroSessao: FiltroSessaoService = inject(FiltroSessaoService);
   private readonly router: Router = inject(Router);
   private readonly changeDetectorRef: ChangeDetectorRef = inject(ChangeDetectorRef);
   private readonly uiLoaderService: NgxUiLoaderService = inject(NgxUiLoaderService);
   private readonly mensagemService: ExibirMensagemService = inject(ExibirMensagemService);
 
   ngOnInit(): void {
-    this.listar();
+    // Restaura o filtro da sessão e, quando preenchido, refaz a pesquisa com ele.
+    this.filtro = this.filtroSessao.carregar(this.filtroChave, {});
+    if (this.temFiltroPreenchido()) {
+      this.executarPesquisa();
+    } else {
+      this.listar();
+    }
   }
 
   ngOnDestroy(): void {
@@ -58,7 +67,7 @@ export class PesquisarComponente implements OnInit, OnDestroy {
   }
 
   pesquisar(): void {
-    if (!this.filtro.nome || this.filtro.nome.trim() === '') {
+    if (!this.temFiltroPreenchido()) {
       this.mensagemService.showMessage(
         'Informe ao menos um filtro para pesquisar.',
         'Marcas',
@@ -67,16 +76,12 @@ export class PesquisarComponente implements OnInit, OnDestroy {
       return;
     }
 
-    this.uiLoaderService.startLoader(this.loaderId);
-    this.service.pesquisar(this.filtro).subscribe({
-      next: marcas => {
-        this.atualizarGrid(marcas);
-      },
-      error: () => this.uiLoaderService.stopLoader(this.loaderId)
-    });
+    this.filtroSessao.salvar(this.filtroChave, this.filtro);
+    this.executarPesquisa();
   }
 
   limparFiltros(): void {
+    this.filtroSessao.limpar(this.filtroChave);
     this.filtro = {};
     this.listar();
   }
@@ -117,6 +122,20 @@ export class PesquisarComponente implements OnInit, OnDestroy {
         },
         error: () => this.uiLoaderService.stopLoader(this.loaderId)
       });
+    });
+  }
+
+  private temFiltroPreenchido(): boolean {
+    return Boolean(this.filtro.nome && this.filtro.nome.trim() !== '');
+  }
+
+  private executarPesquisa(): void {
+    this.uiLoaderService.startLoader(this.loaderId);
+    this.service.pesquisar(this.filtro).subscribe({
+      next: marcas => {
+        this.atualizarGrid(marcas);
+      },
+      error: () => this.uiLoaderService.stopLoader(this.loaderId)
     });
   }
 

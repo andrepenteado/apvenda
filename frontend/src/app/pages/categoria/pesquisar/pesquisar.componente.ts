@@ -13,6 +13,7 @@ import { NgxUiLoaderModule, NgxUiLoaderService } from 'ngx-ui-loader';
 import Swal from 'sweetalert2';
 import { Categoria } from '../../../domain/entities/categoria';
 import { CATEGORIA_CAMPOS_PESQUISA, CategoriaFiltro, CategoriaService } from '../../../services/categoria.service';
+import { FiltroSessaoService } from '../../../services/filtro-sessao.service';
 
 @Component({
   selector: 'venda-categoria-pesquisar',
@@ -36,15 +37,23 @@ export class PesquisarComponente implements OnInit, OnDestroy {
 
   private readonly loaderId = 'categoria-pesquisar';
   private readonly tabelaId = '#datatables-pesquisar-categorias';
+  private readonly filtroChave = 'categoria';
   private readonly service: CategoriaService = inject(CategoriaService);
+  private readonly filtroSessao: FiltroSessaoService = inject(FiltroSessaoService);
   private readonly router: Router = inject(Router);
   private readonly changeDetectorRef: ChangeDetectorRef = inject(ChangeDetectorRef);
   private readonly uiLoaderService: NgxUiLoaderService = inject(NgxUiLoaderService);
   private readonly mensagemService: ExibirMensagemService = inject(ExibirMensagemService);
 
   ngOnInit(): void {
+    // Restaura o filtro da sessão e, quando preenchido, refaz a pesquisa com ele.
+    this.filtro = this.filtroSessao.carregar(this.filtroChave, this.criarFiltro());
     this.listarCategoriasPai();
-    this.listar();
+    if (this.temFiltroPreenchido()) {
+      this.executarPesquisa();
+    } else {
+      this.listar();
+    }
   }
 
   ngOnDestroy(): void {
@@ -71,16 +80,12 @@ export class PesquisarComponente implements OnInit, OnDestroy {
       return;
     }
 
-    this.uiLoaderService.startLoader(this.loaderId);
-    this.service.pesquisar(this.filtro).subscribe({
-      next: categorias => {
-        this.atualizarGrid(categorias);
-      },
-      error: () => this.uiLoaderService.stopLoader(this.loaderId)
-    });
+    this.filtroSessao.salvar(this.filtroChave, this.filtro);
+    this.executarPesquisa();
   }
 
   limparFiltros(): void {
+    this.filtroSessao.limpar(this.filtroChave);
     this.filtro = this.criarFiltro();
     this.listar();
   }
@@ -149,6 +154,16 @@ export class PesquisarComponente implements OnInit, OnDestroy {
     return {
       ativo: null
     };
+  }
+
+  private executarPesquisa(): void {
+    this.uiLoaderService.startLoader(this.loaderId);
+    this.service.pesquisar(this.filtro).subscribe({
+      next: categorias => {
+        this.atualizarGrid(categorias);
+      },
+      error: () => this.uiLoaderService.stopLoader(this.loaderId)
+    });
   }
 
   private inicializarDataTable(): void {
