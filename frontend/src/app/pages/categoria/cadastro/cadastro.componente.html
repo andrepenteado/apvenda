@@ -45,14 +45,14 @@
               <div class="text-secondary fw-semibold">Criado por</div>
               <div class="text-truncate">{{ categoria?.criadoPor || '-' }}</div>
               <div class="text-secondary fw-semibold mt-1">Criado em</div>
-              <div>{{ categoria?.criadoEm | date:'short' }}</div>
+              <div>{{ $safeNavigationMigration(categoria?.criadoEm) | date:'short' }}</div>
             </div>
             @if (categoria?.alteradoPor || categoria?.alteradoEm) {
             <div style="max-width: 12rem;">
               <div class="text-secondary fw-semibold">Alterado por</div>
               <div class="text-truncate">{{ categoria?.alteradoPor || '-' }}</div>
               <div class="text-secondary fw-semibold mt-1">Alterado em</div>
-              <div>{{ categoria?.alteradoEm ? (categoria?.alteradoEm | date:'short') : '-' }}</div>
+              <div>{{ categoria?.alteradoEm ? ($safeNavigationMigration(categoria?.alteradoEm) | date:'short') : '-' }}</div>
             </div>
             }
           </div>

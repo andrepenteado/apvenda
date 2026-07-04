@@ -4,7 +4,7 @@
  * Observação: arquivo criado com ajuda da IA.
  */
 import { CommonModule } from '@angular/common';
-import { ChangeDetectorRef, Component, inject, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, inject, OnDestroy, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { Datatables, DecoracaoMensagem, ExibirMensagemService } from '@andre.penteado/ngx-apcore';
@@ -21,6 +21,7 @@ import { MARCA_CAMPOS_PESQUISA, MarcaFiltro, MarcaService } from '../../../servi
     NgxUiLoaderModule,
     RouterLink
   ],
+  changeDetection: ChangeDetectionStrategy.Eager,
   templateUrl: './pesquisar.componente.html'
 })
 export class PesquisarComponente implements OnInit, OnDestroy {

@@ -4,7 +4,7 @@
  * Observação: arquivo criado com ajuda da IA.
  */
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectionStrategy } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { NgSelectModule } from '@ng-select/ng-select';
@@ -22,6 +22,7 @@ import { CategoriaService } from '../../../services/categoria.service';
     ReactiveFormsModule,
     RouterLink
   ],
+  changeDetection: ChangeDetectionStrategy.Eager,
   templateUrl: './cadastro.componente.html'
 })
 export class CadastroComponente implements OnInit {

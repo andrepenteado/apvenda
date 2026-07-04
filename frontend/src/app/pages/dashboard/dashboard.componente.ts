@@ -4,7 +4,7 @@
  * Observação: arquivo criado com ajuda da IA.
  */
 import { CommonModule } from '@angular/common';
-import { AfterViewInit, Component, ElementRef, OnDestroy, OnInit, ViewChild, inject } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, OnDestroy, OnInit, ViewChild, inject, ChangeDetectionStrategy } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { NgxUiLoaderModule, NgxUiLoaderService } from 'ngx-ui-loader';
 import { Chart, registerables, TooltipItem } from 'chart.js';
@@ -32,6 +32,7 @@ const MOEDA = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL
     RouterLink
   ],
   templateUrl: './dashboard.componente.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './dashboard.componente.css'
 })
 export class DashboardComponente implements OnInit, AfterViewInit, OnDestroy {

@@ -4,7 +4,7 @@
  * Observação: arquivo criado com ajuda da IA.
  */
 import { CommonModule } from '@angular/common';
-import { ChangeDetectorRef, Component, inject, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, inject, OnDestroy, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { NgSelectModule } from '@ng-select/ng-select';
@@ -28,6 +28,7 @@ import { PRODUTO_CAMPOS_PESQUISA, ProdutoFiltro, ProdutoService } from '../../..
     NgxUiLoaderModule,
     RouterLink
   ],
+  changeDetection: ChangeDetectionStrategy.Eager,
   templateUrl: './pesquisar.componente.html'
 })
 export class PesquisarComponente implements OnInit, OnDestroy {
