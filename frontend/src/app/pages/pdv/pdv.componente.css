@@ -15,16 +15,10 @@ kbd {
   padding: .1rem .35rem;
 }
 
-/* Miniaturas nos resultados da busca de produtos, com linhas mais espaçadas. */
+/* Resultados da busca de produtos com linhas mais espaçadas. */
 .pdv-campos ::ng-deep .ng-select .ng-dropdown-panel .ng-option {
   padding-bottom: .5rem;
   padding-top: .5rem;
-}
-
-.pdv-opcao-foto {
-  height: 2.5rem;
-  object-fit: cover;
-  width: 2.5rem;
 }
 
 /* Tabela de itens rolável dentro do card (como um dbrowse), com cabeçalho fixo.

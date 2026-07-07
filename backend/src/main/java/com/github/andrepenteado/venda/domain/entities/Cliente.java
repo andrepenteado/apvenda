@@ -5,6 +5,8 @@
  */
 package com.github.andrepenteado.venda.domain.entities;
 
+import br.unesp.fc.andrepenteado.core.web.utils.TextoUtils;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.github.andrepenteado.venda.domain.enums.TipoPessoa;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -13,6 +15,8 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.PrePersist;
+import jakarta.persistence.PreUpdate;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
@@ -55,6 +59,12 @@ public class Cliente implements Serializable {
 
     @Column(columnDefinition = "TEXT")
     private String observacao;
+
+    // Campo denormalizado de pesquisa: nome normalizado (sem acentos, em
+    // minúsculas). Mantido automaticamente em atualizarPesquisa().
+    @JsonIgnore
+    @Column
+    private String pesquisa;
 
     @Column(name = "criado_por", nullable = false)
     private String criadoPor;
@@ -264,6 +274,25 @@ public class Cliente implements Serializable {
      */
     public void setAlteradoEm(LocalDateTime alteradoEm) {
         this.alteradoEm = alteradoEm;
+    }
+
+    /**
+     * Retorna o campo denormalizado de pesquisa do Cliente.
+     *
+     * @return campo de pesquisa normalizado.
+     */
+    public String getPesquisa() {
+        return pesquisa;
+    }
+
+    /**
+     * Recalcula o campo denormalizado de pesquisa a partir do nome.
+     * Executado automaticamente antes de gravar.
+     */
+    @PrePersist
+    @PreUpdate
+    public void atualizarPesquisa() {
+        this.pesquisa = TextoUtils.normalizar(nome);
     }
 
     /**

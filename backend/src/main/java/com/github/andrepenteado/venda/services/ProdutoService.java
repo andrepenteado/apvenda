@@ -7,6 +7,7 @@ package com.github.andrepenteado.venda.services;
 
 import br.unesp.fc.andrepenteado.core.upload.UploadRepository;
 import br.unesp.fc.andrepenteado.core.web.services.SecurityService;
+import br.unesp.fc.andrepenteado.core.web.utils.TextoUtils;
 import com.github.andrepenteado.venda.VendaApplication;
 import com.github.andrepenteado.venda.domain.dto.datatables.DatatablesRequest;
 import com.github.andrepenteado.venda.domain.dto.datatables.DatatablesResponse;
@@ -25,6 +26,7 @@ import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.security.access.annotation.Secured;
@@ -35,7 +37,6 @@ import org.springframework.web.server.ResponseStatusException;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.StreamSupport;
 
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.HttpStatus.NOT_FOUND;
@@ -110,8 +111,7 @@ public class ProdutoService {
         if (termo != null) {
             QProduto produto = QProduto.produto;
             predicate.and(new BooleanBuilder()
-                .or(produto.nome.containsIgnoreCase(termo))
-                .or(produto.codigoBarras.eq(termo))
+                .or(produto.pesquisa.contains(TextoUtils.normalizar(termo)))
                 .or(produto.categoria.nome.containsIgnoreCase(termo))
                 .or(produto.marca.nome.containsIgnoreCase(termo)));
         }
@@ -123,11 +123,12 @@ public class ProdutoService {
     }
 
     /**
-     * Busca produtos ativos para o PDV pelo código de barras (exato) ou por parte
-     * do nome, limitando a quantidade de resultados.
+     * Busca produtos ativos para o PDV por parte do nome ou do código de
+     * barras, sem considerar acentos nem maiúsculas/minúsculas, limitando a
+     * quantidade de resultados já no banco.
      *
      * @param termo texto pesquisado (nome ou código de barras).
-     * @return produtos ativos que casam com o termo (máx. 20).
+     * @return produtos ativos que casam com o termo (máx. 20, por nome).
      */
     @Transactional(readOnly = true)
     @Secured(VendaApplication.PERFIL_CAIXA)
@@ -136,13 +137,10 @@ public class ProdutoService {
         if (termo == null || termo.isBlank()) {
             return List.of();
         }
-        String texto = termo.trim();
         QProduto produto = QProduto.produto;
         Predicate predicate = produto.ativo.isTrue()
-            .and(produto.codigoBarras.eq(texto).or(produto.nome.containsIgnoreCase(texto)));
-        return StreamSupport.stream(repository.findAll(predicate).spliterator(), false)
-            .limit(20)
-            .toList();
+            .and(produto.pesquisa.contains(TextoUtils.normalizar(termo.trim())));
+        return repository.findAll(predicate, PageRequest.of(0, 20, Sort.by("nome"))).getContent();
     }
 
     /**

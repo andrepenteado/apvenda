@@ -5,6 +5,7 @@
  */
 package com.github.andrepenteado.venda.domain.filter;
 
+import br.unesp.fc.andrepenteado.core.web.utils.TextoUtils;
 import com.github.andrepenteado.venda.domain.entities.QCliente;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.Predicate;
@@ -64,7 +65,9 @@ public class ClienteFilter {
         BooleanBuilder builder = new BooleanBuilder();
 
         if (nome != null && !nome.isBlank()) {
-            builder.and(cliente.nome.containsIgnoreCase(nome.trim()));
+            // Pesquisa no campo denormalizado, sem considerar acentos nem
+            // maiúsculas/minúsculas.
+            builder.and(cliente.pesquisa.contains(TextoUtils.normalizar(nome.trim())));
         }
 
         if (cpfCnpj != null) {

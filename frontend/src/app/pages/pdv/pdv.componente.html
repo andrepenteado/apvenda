@@ -52,7 +52,6 @@
             (change)="selecionarProduto($event)">
             <ng-template ng-option-tmp let-item="item">
               <div class="d-flex align-items-center">
-                <img [src]="fotoSrc(item)" alt="" class="pdv-opcao-foto rounded me-2">
                 <span class="flex-grow-1 text-truncate">{{ item.nome }}</span>
                 <span class="text-muted ms-3">{{ item.precoVenda != null ? (item.precoVenda | number:'1.2-2') : '-' }}</span>
               </div>

@@ -6,6 +6,7 @@
 package com.github.andrepenteado.venda.services;
 
 import br.unesp.fc.andrepenteado.core.web.services.SecurityService;
+import br.unesp.fc.andrepenteado.core.web.utils.TextoUtils;
 import com.github.andrepenteado.venda.VendaApplication;
 import com.github.andrepenteado.venda.domain.dto.datatables.DatatablesRequest;
 import com.github.andrepenteado.venda.domain.dto.datatables.DatatablesResponse;
@@ -19,6 +20,7 @@ import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.security.access.annotation.Secured;
@@ -86,7 +88,7 @@ public class ClienteService {
         if (termo != null) {
             QCliente cliente = QCliente.cliente;
             BooleanBuilder busca = new BooleanBuilder()
-                .or(cliente.nome.containsIgnoreCase(termo))
+                .or(cliente.pesquisa.contains(TextoUtils.normalizar(termo)))
                 .or(cliente.telefone.contains(termo));
             if (termo.matches("\\d{1,18}")) {
                 busca.or(cliente.cpfCnpj.eq(Long.valueOf(termo)));
@@ -101,16 +103,17 @@ public class ClienteService {
     }
 
     /**
-     * Pesquisa Clientes pelos filtros informados.
+     * Pesquisa Clientes pelos filtros informados, limitando a quantidade de
+     * resultados já no banco (usada pelo typeahead do PDV).
      *
      * @param filtro filtros de pesquisa.
-     * @return lista de Clientes encontrados.
+     * @return Clientes encontrados (máx. 20, por nome).
      */
     @Transactional(readOnly = true)
     @Secured(VendaApplication.PERFIL_CAIXA)
     public Iterable<Cliente> pesquisar(ClienteFilter filtro) {
         LOGGER.info("Pesquisando Clientes com filtro: nome={}, cpfCnpj={}", filtro.getNome(), filtro.getCpfCnpj());
-        return repository.findAll(filtro.toPredicate());
+        return repository.findAll(filtro.toPredicate(), PageRequest.of(0, 20, Sort.by("nome"))).getContent();
     }
 
     /**

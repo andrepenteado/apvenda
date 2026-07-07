@@ -63,6 +63,13 @@ Definida por `.cruds/produto.yaml`. Colunas relevantes: `id`, `nome`,
 
 4. **`criado_por` = `'Migração'`** e `criado_em = CURRENT_TIMESTAMP`.
 
+4b. **Campo denormalizado `pesquisa`** (nome + código de barras, sem acentos, em
+   minúsculas). Nas gravações pela aplicação o JPA mantém o campo
+   (`Produto.atualizarPesquisa()`); como a migração insere via SQL, o script
+   emite ao final um `UPDATE produto SET pesquisa = lower(unaccent(...))`
+   usando a extensão `unaccent` (criada pelo changelog do Liquibase). A
+   expressão deve **espelhar `TextoUtils.normalizar()`** do apcore web.
+
 5. **Campos descartados** (vazios/constantes/calculados): `CODBAR`, `CODIGOSUBS`,
    `DV`, `QTMINIMA`, `QTMAXIMA`, `PEDIDOS`, `CUSTOMED`, `CUSTOIND`, `ICMS`,
    `REDBASE`, `HISTORICO`, `MEDIAMES`, `VENDAMES`, `COMPRA*`, `VENDEU`, `FATUROU`,

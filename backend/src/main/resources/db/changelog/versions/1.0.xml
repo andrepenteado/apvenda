@@ -8,6 +8,12 @@
 
     <changeSet id="2026-02-07" author="André Penteado">
         <comment>Tabela upload da lib br.unesp.fc.andrepenteado.core:upload (mapeada pela lib, criada aqui pois a lib nao traz o changelog). Precede o produto por causa da FK fk_produto_foto.</comment>
+
+        <!-- unaccent: usada pelos scripts de migração de dados (.migration/) para
+             preencher o campo `pesquisa`; a aplicação normaliza em Java (TextoUtils).
+             pg_trgm: permite indexar consultas LIKE '%termo%' com índice GIN. -->
+        <sql>CREATE EXTENSION IF NOT EXISTS unaccent</sql>
+        <sql>CREATE EXTENSION IF NOT EXISTS pg_trgm</sql>
         <createTable tableName="upload">
             <column name="uuid" type="UUID">
                 <constraints nullable="false" primaryKey="true" primaryKeyName="pk_upload"/>
@@ -103,6 +109,9 @@
             </column>
             <column name="fk_foto" type="UUID"/>
             <column name="observacao" type="TEXT"/>
+            <!-- Denormalizado: nome + código de barras sem acentos, em minúsculas
+                 (pesquisa insensível a acentos; mantido pela aplicação). -->
+            <column name="pesquisa" type="TEXT"/>
             <column name="criado_por" type="VARCHAR">
                 <constraints nullable="false"/>
             </column>
@@ -142,6 +151,8 @@
         <createIndex tableName="produto" indexName="idx_produto_marca">
             <column name="fk_marca"/>
         </createIndex>
+        <!-- GIN trigram: acelera o LIKE '%termo%' da pesquisa do PDV e dos grids. -->
+        <sql>CREATE INDEX idx_produto_pesquisa ON produto USING gin (pesquisa gin_trgm_ops)</sql>
 
         <createTable tableName="venda">
             <column name="id" type="BIGINT" autoIncrement="true">
@@ -254,6 +265,9 @@
             <column name="telefone" type="VARCHAR"/>
             <column name="whatsapp" type="BOOLEAN"/>
             <column name="observacao" type="TEXT"/>
+            <!-- Denormalizado: nome sem acentos, em minúsculas (pesquisa
+                 insensível a acentos; mantido pela aplicação). -->
+            <column name="pesquisa" type="VARCHAR"/>
             <column name="criado_por" type="VARCHAR">
                 <constraints nullable="false"/>
             </column>
@@ -269,6 +283,7 @@
         <createIndex tableName="cliente" indexName="idx_cliente_cpf_cnpj">
             <column name="cpf_cnpj"/>
         </createIndex>
+        <sql>CREATE INDEX idx_cliente_pesquisa ON cliente USING gin (pesquisa gin_trgm_ops)</sql>
         <addForeignKeyConstraint
             baseTableName="venda"
             baseColumnNames="fk_cliente"

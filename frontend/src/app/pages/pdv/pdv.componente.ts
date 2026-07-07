@@ -94,7 +94,6 @@ export class PdvComponente implements OnInit, OnDestroy {
       next: produtos => {
         this.produtos = produtos;
         this.buscando = false;
-        this.carregarFotos(produtos);
       },
       error: () => (this.buscando = false)
     });
@@ -165,6 +164,9 @@ export class PdvComponente implements OnInit, OnDestroy {
     }
     const produto = this.produtoSelecionado;
     const preco = produto.precoVenda ?? 0;
+    // A foto só é buscada quando o produto entra no carrinho (o dropdown de
+    // pesquisa não exibe fotos para não disparar downloads a cada tecla).
+    this.carregarFotos([produto]);
     const existente = this.itens.find(item => item.produtoId === produto.id);
     if (existente) {
       existente.quantidade = this.arred2(existente.quantidade + this.quantidade);
