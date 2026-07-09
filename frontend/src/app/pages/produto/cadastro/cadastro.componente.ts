@@ -8,7 +8,7 @@ import { Component, OnInit, inject, ChangeDetectionStrategy } from '@angular/cor
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { NgSelectModule } from '@ng-select/ng-select';
-import { DecoracaoMensagem, ExibirMensagemService, Upload, UploadService } from '@andre.penteado/ngx-apcore';
+import { DecoracaoMensagem, ExibirMensagemService, ImagemUploadComponent, Upload, UploadService } from '@andre.penteado/ngx-apcore';
 import { NgxUiLoaderModule, NgxUiLoaderService } from 'ngx-ui-loader';
 import { Categoria } from '../../../domain/entities/categoria';
 import { Marca } from '../../../domain/entities/marca';
@@ -27,7 +27,8 @@ type CampoObrigatorio = 'nome' | 'categoria' | 'marca' | 'unidade' | 'ativo';
     NgSelectModule,
     NgxUiLoaderModule,
     ReactiveFormsModule,
-    RouterLink
+    RouterLink,
+    ImagemUploadComponent
   ],
   changeDetection: ChangeDetectionStrategy.Eager,
   templateUrl: './cadastro.componente.html'
@@ -110,14 +111,7 @@ export class CadastroComponente implements OnInit {
     });
   }
 
-  selecionarFoto(event: Event): void {
-    const input = event.target as HTMLInputElement;
-    const arquivo = input.files?.[0];
-
-    if (!arquivo) {
-      return;
-    }
-
+  selecionarFoto(arquivo: File): void {
     const reader = new FileReader();
     reader.onload = () => {
       const base64 = (reader.result as string).split(',')[1] ?? '';
@@ -141,7 +135,6 @@ export class CadastroComponente implements OnInit {
       });
     };
     reader.readAsDataURL(arquivo);
-    input.value = '';
   }
 
   removerFoto(): void {
