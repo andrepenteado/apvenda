@@ -76,6 +76,7 @@ export class PesquisarComponente implements OnInit, OnDestroy {
       return;
     }
 
+    console.info(`Pesquisar produtos com filtro ${JSON.stringify(this.filtro)}`);
     this.filtroSessao.salvar(this.filtroChave, this.filtro);
     this.recarregar();
   }
@@ -108,6 +109,7 @@ export class PesquisarComponente implements OnInit, OnDestroy {
         return;
       }
 
+      console.info(`Excluir produto de ID #${id}`);
       this.service.excluir(id).subscribe({
         next: () => {
           this.mensagemService.showMessage('Produto excluído com sucesso.', 'Produtos', DecoracaoMensagem.SUCESSO);

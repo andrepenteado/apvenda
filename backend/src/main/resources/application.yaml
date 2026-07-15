@@ -69,7 +69,7 @@ management:
       probability: 1.0
     export:
       zipkin:
-        endpoint: http://sistemas.apcode.com.br:9411
+        endpoint: http://tempo.monitor.svc.cluster.local:9411/api/v2/spans
 
 frontend:
   base-url: https://sistemas.apcode.com.br # CORS

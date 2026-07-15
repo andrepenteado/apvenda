@@ -11,6 +11,10 @@ app:
     URL_BACKEND: https://sistemas.apcode.com.br/venda-backend
     URL_PORTAL: https://sistemas.apcode.com.br/portal/login
 
+  # Respondido pelo nginx (frontend/nginx.conf); o chart prefixa com ingress.context
+  livenessProbe: "/healthz"
+  readinessProbe: "/healthz"
+
 ingress:
   host: "sistemas.apcode.com.br"
   context: "/venda"

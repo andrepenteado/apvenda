@@ -53,6 +53,7 @@ export class CadastroComponente implements OnInit {
   }
 
   carregar(id: number): void {
+    console.info(`Buscar marca de ID #${id}`);
     this.iniciarLoader();
     this.service.buscar(id).subscribe({
       next: marca => {
@@ -74,6 +75,7 @@ export class CadastroComponente implements OnInit {
     }
 
     const marca = this.montarMarca();
+    console.info(`${this.modoEdicao ? 'Alterar dados da' : 'Incluir nova'} marca ${JSON.stringify(marca)}`);
     this.iniciarLoader();
 
     const requisicao = this.modoEdicao && marca.id != null

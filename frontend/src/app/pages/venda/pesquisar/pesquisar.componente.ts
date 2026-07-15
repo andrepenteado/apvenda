@@ -73,6 +73,7 @@ export class PesquisarComponente implements OnInit, OnDestroy {
       return;
     }
 
+    console.info(`Pesquisar vendas com filtro ${JSON.stringify(this.filtro)}`);
     this.filtroSessao.salvar(this.filtroChave, this.filtro);
     this.recarregar();
   }
@@ -114,6 +115,7 @@ export class PesquisarComponente implements OnInit, OnDestroy {
       if (!resultado.isConfirmed) {
         return;
       }
+      console.info(`Estornar venda de ID #${id}`);
       this.service.estornar(id).subscribe({
         next: () => {
           this.mensagemService.showMessage(

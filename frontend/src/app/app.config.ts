@@ -1,5 +1,6 @@
 import {
   ApplicationConfig,
+  ErrorHandler,
   importProvidersFrom,
   LOCALE_ID,
   provideBrowserGlobalErrorListeners,
@@ -12,7 +13,7 @@ import { provideAnimations } from '@angular/platform-browser/animations';
 import { provideHttpClient, withInterceptors, withInterceptorsFromDi, withXhr } from '@angular/common/http';
 import { ToastrModule } from 'ngx-toastr';
 import { INIT_CONFIG, InitConfig } from './config/init-config.token';
-import { PARAMS, apcoreInterceptors } from '@andre.penteado/ngx-apcore';
+import { apcoreInterceptors, FaroErrorHandler, PARAMS } from '@andre.penteado/ngx-apcore';
 import { DESCRICAO, LOGOTIPO, MODULO, PREFIXO_PERFIL_SISTEMA } from './config/layout';
 import { menu } from './config/menu';
 import localePT from '@angular/common/locales/pt';
@@ -24,6 +25,7 @@ const CONFIG = (window as any).initConfig as InitConfig;
 
 export const appConfig: ApplicationConfig = {
   providers: [
+    { provide: ErrorHandler, useClass: FaroErrorHandler },
     provideBrowserGlobalErrorListeners(),
     provideRouter(routes),
     provideZoneChangeDetection({eventCoalescing: true}),

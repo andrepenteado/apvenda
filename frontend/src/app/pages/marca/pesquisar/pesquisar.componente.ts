@@ -57,6 +57,7 @@ export class PesquisarComponente implements OnInit, OnDestroy {
   }
 
   listar(): void {
+    console.info('Listar todas marcas');
     this.uiLoaderService.startLoader(this.loaderId);
     this.service.listar().subscribe({
       next: marcas => {
@@ -114,6 +115,7 @@ export class PesquisarComponente implements OnInit, OnDestroy {
         return;
       }
 
+      console.info(`Excluir marca de ID #${marca.id}`);
       this.uiLoaderService.startLoader(this.loaderId);
       this.service.excluir(marca.id).subscribe({
         next: () => {
@@ -130,6 +132,7 @@ export class PesquisarComponente implements OnInit, OnDestroy {
   }
 
   private executarPesquisa(): void {
+    console.info(`Pesquisar marcas com filtro ${JSON.stringify(this.filtro)}`);
     this.uiLoaderService.startLoader(this.loaderId);
     this.service.pesquisar(this.filtro).subscribe({
       next: marcas => {

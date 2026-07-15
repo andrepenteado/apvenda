@@ -271,6 +271,7 @@ export class PdvComponente implements OnInit, OnDestroy {
       desconto: this.desconto || 0,
       formaPagamento: this.formaPagamento
     };
+    console.info(`Finalizar venda ${JSON.stringify(request)}`);
     this.service.finalizar(request).subscribe({
       next: venda => {
         this.vendaFinalizada = venda;

@@ -73,6 +73,7 @@ export class CadastroComponente implements OnInit {
   }
 
   carregar(id: number): void {
+    console.info(`Buscar cliente de ID #${id}`);
     this.iniciarLoader();
     this.service.buscar(id).subscribe({
       next: cliente => {
@@ -100,6 +101,7 @@ export class CadastroComponente implements OnInit {
     }
 
     const cliente = this.montarCliente();
+    console.info(`${this.modoEdicao ? 'Alterar dados do' : 'Incluir novo'} cliente ${JSON.stringify(cliente)}`);
     this.iniciarLoader();
 
     const requisicao = this.modoEdicao && cliente.id != null

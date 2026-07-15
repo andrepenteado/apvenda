@@ -60,6 +60,7 @@ export class PesquisarComponente implements OnInit, OnDestroy {
       return;
     }
 
+    console.info(`Pesquisar clientes com filtro ${JSON.stringify(this.filtro)}`);
     this.filtroSessao.salvar(this.filtroChave, this.filtro);
     this.recarregar();
   }
@@ -92,6 +93,7 @@ export class PesquisarComponente implements OnInit, OnDestroy {
         return;
       }
 
+      console.info(`Excluir cliente de ID #${id}`);
       this.service.excluir(id).subscribe({
         next: () => {
           this.mensagemService.showMessage('Cliente excluído com sucesso.', 'Clientes', DecoracaoMensagem.SUCESSO);
